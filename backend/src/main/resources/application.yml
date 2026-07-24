@@ -1,0 +1,10 @@
+spring:
+  profiles:
+    active: supabase
+
+  flyway:
+    enabled: ${FLYWAY_ENABLED:false}
+
+server:
+  port: 8080
+  address: 0.0.0.0

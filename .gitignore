@@ -1,0 +1,65 @@
+# =========================
+# SECRET / ENVIRONMENT
+# =========================
+.env
+.env.*
+!.env.example
+
+*.pem
+*.key
+*.p12
+*.jks
+
+application-secret.properties
+application-local.properties
+application-prod.properties
+application-dev.properties
+
+# =========================
+# NODE / NEXT.JS
+# =========================
+node_modules/
+.next/
+out/
+dist/
+coverage/
+.npm/
+.pnpm-store/
+
+# =========================
+# JAVA / SPRING BOOT
+# =========================
+target/
+build/
+.gradle/
+bin/
+
+# =========================
+# LOGS
+# =========================
+*.log
+logs/
+
+# =========================
+# IDE
+# =========================
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+
+# =========================
+# OPERATING SYSTEM
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# TEMPORARY FILES
+# =========================
+*.tmp
+*.temp
+*.swp

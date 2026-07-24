@@ -1,0 +1,165 @@
+.admin-promotions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-promotions-table th,
+.admin-promotions-table td {
+    padding: 15px 14px;
+    border-bottom: 1px solid #111827;
+    text-align: left;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.admin-promotions-table th {
+    color: #8f9bb3;
+    background: #0d1528;
+    font-weight: 900;
+}
+
+.admin-promotions-table td {
+    color: #f8fafc;
+}
+
+.admin-promotions-table td b {
+    display: block;
+    color: #f8fafc;
+}
+
+.admin-promotions-table td small {
+    display: block;
+    margin-top: 4px;
+    color: #8f9bb3;
+    max-width: 260px;
+    line-height: 1.35;
+}
+
+.admin-promotions-table td span {
+    display: block;
+    color: #dbeafe;
+    line-height: 1.4;
+}
+
+.promotion-value {
+    color: #00d084;
+    font-weight: 950;
+}
+
+.promo-status-chip {
+    display: inline-flex !important;
+    align-items: center;
+    width: fit-content;
+    min-height: 25px;
+    border-radius: 999px;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.promo-status-chip.active {
+    background: #052e1b;
+    color: #22c55e;
+}
+
+.promo-status-chip.inactive {
+    background: #3f1d1d;
+    color: #f87171;
+}
+
+.promo-status-chip.pending {
+    background: #172554;
+    color: #60a5fa;
+}
+
+.promo-status-chip.expired {
+    background: #3f1d1d;
+    color: #fb7185;
+}
+
+.admin-promotion-modal {
+    width: min(470px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    background: #050914;
+    border: 1px solid #1b2946;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 30px 100px rgba(0, 0, 0, 0.45);
+}
+
+.admin-promotion-form {
+    display: grid;
+    gap: 12px;
+}
+
+.admin-promotion-form label {
+    display: grid;
+    gap: 7px;
+}
+
+.admin-promotion-form label span {
+    color: #dbeafe;
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.admin-promotion-form input,
+.admin-promotion-form select,
+.admin-promotion-form textarea {
+    width: 100%;
+    border: 1px solid #1b2946;
+    border-radius: 10px;
+    background: #0d1528;
+    color: #f8fafc;
+    padding: 0 12px;
+    outline: none;
+}
+
+.admin-promotion-form input,
+.admin-promotion-form select {
+    height: 42px;
+}
+
+.admin-promotion-form textarea {
+    min-height: 78px;
+    resize: vertical;
+    padding-top: 10px;
+}
+
+.admin-promotion-form input:focus,
+.admin-promotion-form select:focus,
+.admin-promotion-form textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.promotion-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.admin-check-row {
+    display: flex !important;
+    align-items: center;
+    grid-template-columns: none !important;
+    gap: 9px;
+    color: #dbeafe;
+    font-size: 14px;
+}
+
+.admin-check-row input {
+    width: 16px;
+    height: 16px;
+}
+
+@media (max-width: 760px) {
+    .admin-promotions-table {
+        min-width: 900px;
+    }
+
+    .promotion-form-grid {
+        grid-template-columns: 1fr;
+    }
+}

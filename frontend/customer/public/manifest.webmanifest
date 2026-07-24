@@ -1,0 +1,9 @@
+{
+  "name": "LemondeSteak QR Order",
+  "short_name": "LemondeSteak",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff7f1",
+  "theme_color": "#ff4d1c",
+  "description": "Ứng dụng web đặt món bằng QR tại bàn cho khách hàng LemondeSteak."
+}

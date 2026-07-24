@@ -1,0 +1,221 @@
+:root {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+    color: #f8fafc;
+    background: #020617;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #020617;
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+button,
+select {
+    cursor: pointer;
+}
+
+.admin-app {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 245px 1fr;
+    background: #020617;
+}
+
+.admin-sidebar {
+    background: #030712;
+    border-right: 1px solid #111827;
+    padding: 22px 14px;
+}
+
+.admin-brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #e5e7eb;
+    font-weight: 950;
+    margin-bottom: 24px;
+    padding: 0 10px;
+}
+
+.admin-menu {
+    display: grid;
+    gap: 8px;
+}
+
+.admin-menu button {
+    width: 100%;
+    min-height: 42px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #a8b3c7;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 850;
+    text-align: left;
+}
+
+.admin-menu button.active {
+    background: #17213a;
+    color: #fff;
+}
+
+.admin-menu button:hover {
+    background: #111827;
+}
+
+.admin-main {
+    min-width: 0;
+    background: #020617;
+}
+
+.admin-topbar {
+    height: 58px;
+    border-bottom: 1px solid #111827;
+    background: #050914;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    padding: 0 28px;
+    color: #dbeafe;
+    font-size: 14px;
+}
+
+.admin-topbar button {
+    height: 36px;
+    border: 0;
+    border-radius: 10px;
+    background: #17213a;
+    color: #dbeafe;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 900;
+}
+
+.admin-login-page {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: radial-gradient(circle at top, #172554, #020617 55%);
+}
+
+.admin-login-card {
+    width: min(400px, 100%);
+    background: #050914;
+    border: 1px solid #1b2946;
+    border-radius: 22px;
+    padding: 24px;
+    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.4);
+}
+
+.admin-login-card h1 {
+    margin: 0;
+    color: #f8fafc;
+    letter-spacing: -0.04em;
+}
+
+.admin-login-card p {
+    margin: 7px 0 18px;
+    color: #8f9bb3;
+}
+
+.admin-login-card form {
+    display: grid;
+    gap: 12px;
+}
+
+.admin-login-card input {
+    height: 44px;
+    border: 1px solid #1b2946;
+    border-radius: 12px;
+    background: #0d1528;
+    color: #f8fafc;
+    padding: 0 12px;
+    outline: none;
+}
+
+.admin-login-card input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}
+
+.admin-login-card button {
+    height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: #2563eb;
+    color: #fff;
+    font-weight: 950;
+}
+
+.admin-login-error {
+    border-left: 5px solid #9ca3af;
+    background: #2a1420;
+    color: #fb7185;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.admin-placeholder {
+    min-height: 360px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    color: #8f9bb3;
+    border: 1px dashed #1b2946;
+    border-radius: 18px;
+    background: #050914;
+}
+
+.admin-placeholder h1 {
+    margin: 0;
+    color: #f8fafc;
+}
+
+.admin-placeholder p {
+    margin: 6px 0 0;
+}
+
+@media (max-width: 900px) {
+    .admin-app {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-sidebar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        border-right: 0;
+        border-bottom: 1px solid #111827;
+    }
+
+    .admin-menu {
+        display: flex;
+        overflow-x: auto;
+    }
+
+    .admin-menu button {
+        width: auto;
+        white-space: nowrap;
+    }
+}
