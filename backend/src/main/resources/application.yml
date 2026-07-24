@@ -1,10 +1,10 @@
+server:
+  port: ${PORT:8080}
+  address: 0.0.0.0
+
 spring:
   profiles:
-    active: supabase
+    active: ${SPRING_PROFILES_ACTIVE:supabase}
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
-
-server:
-  port: 8080
-  address: 0.0.0.0
