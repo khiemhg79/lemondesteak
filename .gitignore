@@ -8,37 +8,75 @@
 *.pem
 *.key
 *.p12
+*.pfx
 *.jks
+*.keystore
+*.crt
+*.cer
 
 application-secret.properties
 application-local.properties
-application-prod.properties
 application-dev.properties
 
+# Nếu file prod có password/db url thì giữ dòng này
+application-prod.properties
+
 # =========================
-# NODE / NEXT.JS
+# NODE / VITE / FRONTEND
 # =========================
 node_modules/
+**/node_modules/
+
+dist/
+**/dist/
+
 .next/
 out/
-dist/
 coverage/
 .npm/
 .pnpm-store/
+.vite/
+.cache/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # =========================
-# JAVA / SPRING BOOT
+# JAVA / SPRING BOOT / MAVEN
 # =========================
 target/
+**/target/
+
 build/
 .gradle/
 bin/
+
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven wrapper thì nên giữ lại, không ignore
+!mvnw
+!mvnw.cmd
+!.mvn/wrapper/maven-wrapper.properties
 
 # =========================
 # LOGS
 # =========================
 *.log
 logs/
+
+# =========================
+# DATABASE / LOCAL FILES
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.backup
 
 # =========================
 # IDE
@@ -63,3 +101,18 @@ desktop.ini
 *.tmp
 *.temp
 *.swp
+*.swo
+*.bak
+
+# =========================
+# DEPLOY CACHE
+# =========================
+.vercel/
+.netlify/
+
+# =========================
+# UPLOADS
+# =========================
+uploads/
+backend/uploads/
+public/uploads/
