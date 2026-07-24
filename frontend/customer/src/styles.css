@@ -2429,3 +2429,478 @@ button:disabled {
   font-weight: 950 !important;
   padding: 4px 0 !important;
 }
+
+/* =========================
+   CART SHEET + ORDER SUCCESS FINAL POLISH
+   Chỉ sửa giao diện, không đổi chức năng
+========================= */
+
+.cart-backdrop {
+  align-items: flex-end !important;
+  padding: 0 !important;
+}
+
+.cart-sheet {
+  width: min(100%, 430px) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 76svh !important;
+  border-radius: 22px 22px 0 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: #fff !important;
+  box-shadow: 0 -18px 48px rgba(36, 22, 14, 0.2) !important;
+}
+
+.cart-head {
+  height: 62px !important;
+  min-height: 62px !important;
+  padding: 0 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  border-bottom: 1px solid #f1e4dc !important;
+  background: #fff !important;
+}
+
+.cart-head h2 {
+  margin: 0 !important;
+  color: #1f2937 !important;
+  font-size: 18px !important;
+  font-weight: 950 !important;
+}
+
+.cart-sheet>.sheet-close,
+.cart-head+.sheet-close,
+.cart-sheet .sheet-close {
+  top: 16px !important;
+  right: 16px !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 999px !important;
+  color: #9b8a82 !important;
+  background: transparent !important;
+}
+
+.cart-list {
+  flex: 0 1 auto !important;
+  min-height: 0 !important;
+  max-height: min(36svh, 310px) !important;
+  overflow-y: auto !important;
+  background: #fff !important;
+  border-bottom: 1px solid #f1e4dc !important;
+}
+
+.cart-item {
+  min-height: 88px !important;
+  padding: 12px 14px !important;
+  grid-template-columns: 58px minmax(0, 1fr) 92px 22px !important;
+  gap: 10px !important;
+  align-items: center !important;
+  background: #fff !important;
+  border-bottom: 1px solid #f3e7df !important;
+}
+
+.cart-item:last-child {
+  border-bottom: 0 !important;
+}
+
+.cart-item img {
+  width: 54px !important;
+  height: 54px !important;
+  border-radius: 12px !important;
+  object-fit: cover !important;
+}
+
+.cart-info {
+  min-width: 0 !important;
+}
+
+.cart-info h3 {
+  margin: 0 !important;
+  color: #172033 !important;
+  font-size: 13px !important;
+  line-height: 1.25 !important;
+  font-weight: 950 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.cart-info p {
+  margin: 4px 0 0 !important;
+  color: #9a857d !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+}
+
+.cart-info b {
+  display: block !important;
+  margin-top: 5px !important;
+  color: #45352f !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+}
+
+.cart-stepper {
+  display: grid !important;
+  grid-template-columns: 28px 24px 28px !important;
+  align-items: center !important;
+  justify-content: end !important;
+  gap: 4px !important;
+}
+
+.cart-stepper button {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 9px !important;
+  background: #fff2e9 !important;
+  color: #83675b !important;
+  font-size: 15px !important;
+  font-weight: 950 !important;
+}
+
+.cart-stepper span {
+  color: #172033 !important;
+  font-size: 14px !important;
+  font-weight: 950 !important;
+  text-align: center !important;
+}
+
+.cart-remove-btn {
+  width: 22px !important;
+  height: 22px !important;
+  color: #b6a8a0 !important;
+  font-size: 19px !important;
+}
+
+.cart-footer {
+  flex: 0 0 auto !important;
+  padding: 14px 14px calc(14px + env(safe-area-inset-bottom)) !important;
+  background: #fff !important;
+  border-top: 0 !important;
+}
+
+.cart-total {
+  margin-bottom: 8px !important;
+  color: #74635c !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+}
+
+.cart-total b {
+  color: #ff3d1f !important;
+  font-size: 18px !important;
+  font-weight: 950 !important;
+}
+
+.cart-grand-total {
+  margin-top: 8px !important;
+  padding-top: 10px !important;
+  border-top: 1px dashed #e8d2c5 !important;
+  color: #201715 !important;
+}
+
+.cart-grand-total b {
+  font-size: 20px !important;
+}
+
+.cart-footer-actions {
+  margin-top: 12px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 84px !important;
+  gap: 10px !important;
+}
+
+.order-btn,
+.clear-cart-btn {
+  height: 48px !important;
+  border-radius: 12px !important;
+  font-weight: 950 !important;
+}
+
+.order-btn {
+  font-size: 14px !important;
+  background: linear-gradient(135deg, #ff3d1f 0%, #ff6b00 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 12px 28px rgba(255, 61, 31, 0.22) !important;
+}
+
+.clear-cart-btn {
+  font-size: 12px !important;
+  background: #fff !important;
+  color: #b84925 !important;
+  border: 1px solid #f2d6c7 !important;
+}
+
+/* Popup "Đã tạo đơn" nằm giữa toàn màn hình và nhìn gọn hơn */
+.cart-success-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 999999 !important;
+  width: 100vw !important;
+  height: 100svh !important;
+  padding: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(33, 23, 19, 0.38) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+.cart-success-modal section {
+  width: min(84vw, 330px) !important;
+  min-height: 176px !important;
+  padding: 24px 22px 20px !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  box-shadow: 0 22px 70px rgba(31, 20, 14, 0.32) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  text-align: center !important;
+}
+
+.cart-success-modal section::before {
+  content: "✓";
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 999px !important;
+  display: grid !important;
+  place-items: center !important;
+  background: #dcfce7 !important;
+  color: #16a34a !important;
+  font-size: 24px !important;
+  font-weight: 950 !important;
+}
+
+.cart-success-modal p {
+  margin: 0 !important;
+  color: #172033 !important;
+  font-size: 18px !important;
+  line-height: 1.35 !important;
+  font-weight: 950 !important;
+  text-align: center !important;
+}
+
+.cart-success-modal button {
+  float: none !important;
+  width: 100% !important;
+  height: 44px !important;
+  border: 0 !important;
+  border-radius: 13px !important;
+  background: linear-gradient(135deg, #ff3d1f 0%, #ff6b00 100%) !important;
+  color: #fff !important;
+  font-size: 15px !important;
+  font-weight: 950 !important;
+  box-shadow: 0 12px 26px rgba(255, 61, 31, 0.22) !important;
+}
+
+@media (max-width: 390px) {
+  .cart-sheet {
+    max-height: 78svh !important;
+  }
+
+  .cart-item {
+    grid-template-columns: 52px minmax(0, 1fr) 84px 20px !important;
+    gap: 8px !important;
+    padding: 11px 10px !important;
+  }
+
+  .cart-item img {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .cart-stepper {
+    grid-template-columns: 26px 22px 26px !important;
+  }
+
+  .cart-stepper button {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .cart-footer-actions {
+    grid-template-columns: minmax(0, 1fr) 76px !important;
+  }
+
+  .cart-success-modal section {
+    width: min(86vw, 310px) !important;
+    min-height: 168px !important;
+  }
+}
+
+/* =========================
+   MULTIPLE CURRENT ORDERS
+========================= */
+
+.current-orders-switch {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 2px 2px 12px;
+  margin-bottom: 4px;
+  scrollbar-width: none;
+}
+
+.current-orders-switch::-webkit-scrollbar {
+  display: none;
+}
+
+.current-orders-switch button {
+  min-width: 142px;
+  border: 1px solid #f2d2c1;
+  border-radius: 14px;
+  background: #fff;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  box-shadow: 0 8px 22px rgba(88, 42, 20, 0.05);
+}
+
+.current-orders-switch button.active {
+  border-color: #ff3d1f;
+  background: #fff7f2;
+  box-shadow: 0 12px 30px rgba(255, 61, 31, 0.12);
+}
+
+.current-orders-switch span {
+  color: #231916;
+  font-size: 13px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.current-orders-switch b {
+  color: #ff3d1f;
+  font-size: 15px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.current-orders-switch em {
+  width: fit-content;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 3px 8px;
+  font-size: 10px;
+  line-height: 1;
+  font-style: normal;
+  font-weight: 900;
+}
+
+/* =========================
+   PAYMENT REQUEST SUCCESS MODAL FINAL
+   Bấm Thanh toán xong hiện popup cảm ơn như mockup
+========================= */
+
+.payment-success-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 999999 !important;
+  width: 100vw !important;
+  height: 100svh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 18px !important;
+  background: rgba(24, 18, 14, 0.46) !important;
+  backdrop-filter: blur(6px) !important;
+}
+
+.payment-success-modal {
+  position: relative !important;
+  width: min(88vw, 360px) !important;
+  min-height: 206px !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  padding: 26px 20px 18px !important;
+  text-align: center !important;
+  box-shadow: 0 24px 80px rgba(32, 20, 14, 0.32) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.payment-success-close {
+  position: absolute !important;
+  top: 12px !important;
+  right: 13px !important;
+  width: 28px !important;
+  height: 28px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: #9b8b84 !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+}
+
+.payment-success-icon {
+  width: 38px !important;
+  height: 32px !important;
+  margin: 0 auto 10px !important;
+  display: grid !important;
+  place-items: center !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+}
+
+.payment-success-modal h2 {
+  margin: 0 auto 10px !important;
+  max-width: 290px !important;
+  color: #1f2937 !important;
+  font-size: 14px !important;
+  line-height: 1.42 !important;
+  font-weight: 950 !important;
+  text-align: center !important;
+}
+
+.payment-success-modal p {
+  margin: 0 auto 18px !important;
+  max-width: 290px !important;
+  color: #64748b !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+  font-weight: 750 !important;
+  text-align: center !important;
+}
+
+.payment-success-button {
+  width: 100% !important;
+  height: 42px !important;
+  margin-top: auto !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: linear-gradient(135deg, #ff3d1f 0%, #ff6b00 100%) !important;
+  color: #fff !important;
+  font-size: 13px !important;
+  font-weight: 950 !important;
+  box-shadow: 0 10px 22px rgba(255, 61, 31, 0.24) !important;
+}
+
+@media (max-width: 390px) {
+  .payment-success-modal {
+    width: min(90vw, 340px) !important;
+    min-height: 198px !important;
+    padding: 24px 18px 18px !important;
+  }
+
+  .payment-success-modal h2 {
+    max-width: 270px !important;
+    font-size: 13px !important;
+  }
+
+  .payment-success-modal p {
+    max-width: 275px !important;
+    font-size: 11px !important;
+  }
+}

@@ -213,6 +213,9 @@ public class CustomerOrderController {
 
     @GetMapping("/api/customer/promotions/available")
     public List<Map<String, Object>> availablePromotions() {
+        String userId = currentUserId();
+        String customerId = resolveCustomerId(userId);
+
         List<Map<String, Object>> rows = jdbc.queryForList("""
             select
                 id,
@@ -227,13 +230,23 @@ public class CustomerOrderController {
                 "usageLimit",
                 coalesce("usedCount", 0) as "usedCount",
                 "isActive"
-            from promotions
-            where "isActive" = true
-              and ("startDate" is null or "startDate" <= now())
-              and ("endDate" is null or "endDate" >= now())
-              and ("usageLimit" is null or coalesce("usedCount", 0) < "usageLimit")
-            order by "createdAt" desc
-        """);
+            from promotions p
+            where p."isActive" = true
+              and (p."startDate" is null or p."startDate" <= now())
+              and (p."endDate" is null or p."endDate" >= now())
+              and (p."usageLimit" is null or coalesce(p."usedCount", 0) < p."usageLimit")
+              and not exists (
+                  select 1
+                  from orders o
+                  where o."promoCode" = p.id
+                    and coalesce(o."orderStatus"::text, '') <> 'CANCELLED'
+                    and (
+                        (? is not null and o."userId" = ?)
+                        or (? is not null and o."customerId" = ?)
+                    )
+              )
+            order by p."createdAt" desc
+        """, userId, userId, customerId, customerId);
 
         List<Map<String, Object>> result = new ArrayList<>();
 
@@ -246,9 +259,11 @@ public class CustomerOrderController {
             item.put("minOrderAmount", bigDecimalValue(row.get("minOrderAmount")));
             item.put("maxDiscount", bigDecimalValue(row.get("maxDiscount")));
             item.put("description", stringValue(row.get("description")));
-            item.put("endDate", row.get("endDate"));
+            item.put("startDate", stringValue(row.get("startDate")));
+            item.put("endDate", stringValue(row.get("endDate")));
             item.put("usageLimit", row.get("usageLimit"));
-            item.put("usedCount", row.get("usedCount"));
+            item.put("usedCount", intValue(row.get("usedCount")));
+            item.put("isActive", booleanValue(row.get("isActive")));
             result.add(item);
         }
 
@@ -283,9 +298,20 @@ public class CustomerOrderController {
         BigDecimal taxAmount = bigDecimalValue(order.get("taxAmount"));
         BigDecimal serviceCharge = bigDecimalValue(order.get("serviceCharge"));
         String oldPromotionId = stringValue(order.get("promotionId"));
+        String newPromotionId = request.promotionId.trim();
 
-        Map<String, Object> promotion = findPromotion(request.promotionId);
+        Map<String, Object> promotion = findPromotion(newPromotionId);
         BigDecimal discountAmount = calculateDiscount(subTotal, promotion);
+
+        boolean isChangingPromotion =
+                oldPromotionId == null ||
+                oldPromotionId.isBlank() ||
+                !oldPromotionId.equals(newPromotionId);
+
+        if (isChangingPromotion) {
+            validatePromotionNotUsedByCurrentCustomer(newPromotionId, orderId);
+            reservePromotionUsage(newPromotionId);
+        }
 
         BigDecimal totalAmount = subTotal
                 .add(taxAmount)
@@ -301,22 +327,19 @@ public class CustomerOrderController {
                 "updatedAt" = now()
             where id = ?
         """,
-                request.promotionId,
+                newPromotionId,
                 discountAmount,
                 totalAmount,
                 orderId
         );
 
-        if (oldPromotionId == null || oldPromotionId.isBlank()) {
-            incrementPromotionUsedCount(request.promotionId);
-        } else if (!oldPromotionId.equals(request.promotionId)) {
+        if (isChangingPromotion && oldPromotionId != null && !oldPromotionId.isBlank()) {
             decrementPromotionUsedCount(oldPromotionId);
-            incrementPromotionUsedCount(request.promotionId);
         }
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("orderId", orderId);
-        response.put("promotionId", request.promotionId);
+        response.put("promotionId", newPromotionId);
         response.put("promotionName", stringValue(promotion.get("name")));
         response.put("promotionType", stringValue(promotion.get("type")));
         response.put("promotionValue", bigDecimalValue(promotion.get("value")));
@@ -591,8 +614,11 @@ public class CustomerOrderController {
                     value,
                     "minOrderAmount",
                     "maxDiscount",
+                    "startDate",
+                    "endDate",
                     "usageLimit",
-                    coalesce("usedCount", 0) as "usedCount"
+                    coalesce("usedCount", 0) as "usedCount",
+                    "isActive"
                 from promotions
                 where id = ?
                   and "isActive" = true
@@ -640,13 +666,48 @@ public class CustomerOrderController {
         return discount.min(subTotal).max(BigDecimal.ZERO);
     }
 
-    private void incrementPromotionUsedCount(String promotionId) {
-        jdbc.update("""
+    private void validatePromotionNotUsedByCurrentCustomer(String promotionId, String currentOrderId) {
+        String userId = currentUserId();
+        String customerId = resolveCustomerId(userId);
+
+        Integer usedCount = jdbc.queryForObject("""
+            select count(*)
+            from orders o
+            where o."promoCode" = ?
+              and o.id <> ?
+              and coalesce(o."orderStatus"::text, '') <> 'CANCELLED'
+              and (
+                  (? is not null and o."userId" = ?)
+                  or (? is not null and o."customerId" = ?)
+              )
+        """, Integer.class, promotionId, currentOrderId, userId, userId, customerId, customerId);
+
+        if (usedCount != null && usedCount > 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Bạn đã sử dụng mã giảm giá này rồi."
+            );
+        }
+    }
+
+    private void reservePromotionUsage(String promotionId) {
+        int updated = jdbc.update("""
             update promotions
             set "usedCount" = coalesce("usedCount", 0) + 1,
                 "updatedAt" = now()
             where id = ?
+              and "isActive" = true
+              and ("startDate" is null or "startDate" <= now())
+              and ("endDate" is null or "endDate" >= now())
+              and ("usageLimit" is null or coalesce("usedCount", 0) < "usageLimit")
         """, promotionId);
+
+        if (updated == 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Mã giảm giá không tồn tại, đã hết hạn hoặc đã hết lượt dùng."
+            );
+        }
     }
 
     private void decrementPromotionUsedCount(String promotionId) {

@@ -88,27 +88,87 @@ function clearCartStorage(auth) {
   localStorage.removeItem(key);
 }
 
-function readCurrentOrder(auth) {
+function normalizeCurrentOrders(value) {
+  if (!value) return [];
+
+  if (Array.isArray(value)) {
+    return value.filter((order) => order && order.id);
+  }
+
+  if (value && typeof value === 'object' && value.id) {
+    return [value];
+  }
+
+  return [];
+}
+
+function readCurrentOrders(auth) {
   const key = getCurrentOrderKey(auth);
-  if (!key) return null;
+  if (!key) return [];
 
   try {
-    return JSON.parse(localStorage.getItem(key) || 'null');
+    const value = JSON.parse(localStorage.getItem(key) || '[]');
+    return normalizeCurrentOrders(value);
   } catch {
-    return null;
+    return [];
   }
 }
 
-function writeCurrentOrder(auth, order) {
+function writeCurrentOrders(auth, orders) {
   const key = getCurrentOrderKey(auth);
   if (!key) return;
 
-  if (!order) {
+  const nextOrders = normalizeCurrentOrders(orders);
+
+  if (!nextOrders.length) {
     localStorage.removeItem(key);
     return;
   }
 
-  localStorage.setItem(key, JSON.stringify(order));
+  localStorage.setItem(key, JSON.stringify(nextOrders));
+}
+
+function readCurrentOrder(auth) {
+  const orders = readCurrentOrders(auth);
+  return orders.length ? orders[orders.length - 1] : null;
+}
+
+function writeCurrentOrder(auth, order) {
+  writeCurrentOrders(auth, order ? [order] : []);
+}
+
+function upsertCurrentOrder(orders, order) {
+  if (!order?.id) return normalizeCurrentOrders(orders);
+
+  const normalizedOrders = normalizeCurrentOrders(orders);
+  const existed = normalizedOrders.some((item) => String(item.id) === String(order.id));
+
+  if (existed) {
+    return normalizedOrders.map((item) =>
+      String(item.id) === String(order.id)
+        ? {
+          ...item,
+          ...order,
+          items: normalizeOrderItems(order.items || item.items || [])
+        }
+        : item
+    );
+  }
+
+  return [
+    ...normalizedOrders,
+    {
+      ...order,
+      items: normalizeOrderItems(order.items || [])
+    }
+  ];
+}
+
+function removeFinishedCurrentOrders(orders) {
+  return normalizeCurrentOrders(orders).filter((order) => {
+    const status = String(order.orderStatus || '').toUpperCase();
+    return !['PAID', 'CANCELLED', 'COMPLETED'].includes(status);
+  });
 }
 
 function clearCurrentOrderStorage(auth) {
@@ -698,17 +758,25 @@ function CartSheet({
 }
 
 function CurrentOrderView({
-  currentOrder,
+  currentOrders,
+  selectedOrderId,
   promotions,
   promotionsOpen,
   loadingPromotions,
   applyingPromotionId,
   requestingPayment,
+  onSelectOrder,
   onTogglePromotions,
   onApplyPromotion,
   onRequestPayment
 }) {
-  if (!currentOrder) {
+  const orders = normalizeCurrentOrders(currentOrders);
+  const selectedOrder =
+    orders.find((order) => String(order.id) === String(selectedOrderId)) ||
+    orders[orders.length - 1] ||
+    null;
+
+  if (!orders.length || !selectedOrder) {
     return (
       <section className="current-empty">
         <h2>Đơn hiện tại</h2>
@@ -717,12 +785,12 @@ function CurrentOrderView({
     );
   }
 
-  const items = normalizeOrderItems(currentOrder.items);
-  const subTotal = numberValue(currentOrder.subTotal);
-  const discountAmount = numberValue(currentOrder.discountAmount);
-  const totalAmount = numberValue(currentOrder.totalAmount);
-  const orderStatus = String(currentOrder.orderStatus || 'PENDING').toUpperCase();
-  const promotionId = currentOrder.promotionId || currentOrder.promoCode || '';
+  const items = normalizeOrderItems(selectedOrder.items);
+  const subTotal = numberValue(selectedOrder.subTotal);
+  const discountAmount = numberValue(selectedOrder.discountAmount);
+  const totalAmount = numberValue(selectedOrder.totalAmount);
+  const orderStatus = String(selectedOrder.orderStatus || 'PENDING').toUpperCase();
+  const promotionId = selectedOrder.promotionId || selectedOrder.promoCode || '';
 
   const allServed =
     items.length > 0 &&
@@ -735,6 +803,26 @@ function CurrentOrderView({
 
   return (
     <div className="current-order-page">
+      <div className="current-orders-switch">
+        {orders.map((order) => {
+          const active = String(order.id) === String(selectedOrder.id);
+          const status = String(order.orderStatus || 'PENDING').toUpperCase();
+
+          return (
+            <button
+              key={order.id}
+              type="button"
+              className={active ? 'active' : ''}
+              onClick={() => onSelectOrder(order.id)}
+            >
+              <span>Đơn #{order.orderNumber || order.id}</span>
+              <b>{money(order.totalAmount)}</b>
+              <em>{orderStatusLabel(status)}</em>
+            </button>
+          );
+        })}
+      </div>
+
       <div className="current-order-list">
         {items.map((item) => (
           <div className="current-order-item" key={`${item.detailId || item.id}`}>
@@ -770,16 +858,16 @@ function CurrentOrderView({
           </button>
         </div>
 
-        {currentOrder.promotionName && (
+        {selectedOrder.promotionName && (
           <div className="applied-voucher-box">
             <div>
               <span>Voucher đang dùng</span>
-              <b>{currentOrder.promotionName}</b>
+              <b>{selectedOrder.promotionName}</b>
             </div>
 
             <em>
-              {String(currentOrder.promotionType || '').toUpperCase() === 'PERCENT'
-                ? `Giảm ${Number(currentOrder.promotionValue || 0)}%`
+              {String(selectedOrder.promotionType || '').toUpperCase() === 'PERCENT'
+                ? `Giảm ${Number(selectedOrder.promotionValue || 0)}%`
                 : discountAmount > 0
                   ? `Giảm ${money(discountAmount)}`
                   : 'Đã áp dụng'}
@@ -829,7 +917,7 @@ function CurrentOrderView({
 
       <div className="current-total-box">
         <div className="current-order-code">
-          Đơn #{currentOrder.orderNumber || currentOrder.id}
+          Đơn #{selectedOrder.orderNumber || selectedOrder.id}
           <span>{orderStatusLabel(orderStatus)}</span>
         </div>
 
@@ -875,7 +963,6 @@ function CurrentOrderView({
     </div>
   );
 }
-
 
 function historyStatusInfo(status) {
   const value = String(status || '').toUpperCase();
@@ -1132,9 +1219,11 @@ function PaymentRequestSuccessModal({ open, onClose }) {
           ×
         </button>
 
-        <div className="payment-success-icon">🍜</div>
+        <div className="payment-success-icon">🍽️</div>
 
-        <h2>Lemonde Steak xin cảm ơn quý khách đã sử dụng dịch vụ tại nhà hàng.</h2>
+        <h2>
+          Lemonde Steak xin cảm ơn quý khách đã sử dụng dịch vụ tại nhà hàng.
+        </h2>
 
         <p>
           Quý khách vui lòng đợi một chút, nhân viên của Lemonde Steak sẽ gửi hóa đơn tới quý khách trong ít phút.
@@ -1251,6 +1340,7 @@ function UserProfileView({ auth, onLoginClick, onSaveProfile }) {
 export default function App() {
   const initialTable = getTableInfo();
   const initialAuth = getCustomerAuth();
+  const initialCurrentOrders = readCurrentOrders(initialAuth);
 
   const [auth, setAuth] = useState(initialAuth);
   const [activeTab, setActiveTab] = useState('menu');
@@ -1264,7 +1354,10 @@ export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const [foodDetail, setFoodDetail] = useState(null);
-  const [currentOrder, setCurrentOrder] = useState(() => readCurrentOrder(initialAuth));
+  const [currentOrders, setCurrentOrders] = useState(() => initialCurrentOrders);
+  const [selectedCurrentOrderId, setSelectedCurrentOrderId] = useState(() =>
+    initialCurrentOrders.length ? String(initialCurrentOrders[initialCurrentOrders.length - 1].id) : ''
+  );
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [ordering, setOrdering] = useState(false);
@@ -1309,6 +1402,17 @@ export default function App() {
 
   const cartQuantity = auth ? cart.reduce((sum, item) => sum + item.quantity, 0) : 0;
   const cartTotal = auth ? cart.reduce((sum, item) => sum + item.price * item.quantity, 0) : 0;
+
+  const currentOrder = useMemo(() => {
+    const orders = normalizeCurrentOrders(currentOrders);
+
+    if (!orders.length) return null;
+
+    return (
+      orders.find((order) => String(order.id) === String(selectedCurrentOrderId)) ||
+      orders[orders.length - 1]
+    );
+  }, [currentOrders, selectedCurrentOrderId]);
 
   const isCustomerLoggedIn = Boolean(auth?.token || auth?.accessToken || auth?.jwt);
 
@@ -1413,8 +1517,22 @@ export default function App() {
   };
 
   const saveCurrentOrder = (order) => {
-    setCurrentOrder(order);
-    writeCurrentOrder(auth, order);
+    if (!auth) return;
+
+    if (!order) {
+      setCurrentOrders([]);
+      setSelectedCurrentOrderId('');
+      writeCurrentOrders(auth, []);
+      return;
+    }
+
+    setCurrentOrders((current) => {
+      const nextOrders = removeFinishedCurrentOrders(upsertCurrentOrder(current, order));
+      writeCurrentOrders(auth, nextOrders);
+      return nextOrders;
+    });
+
+    setSelectedCurrentOrderId(String(order.id || ''));
   };
 
   const requireLogin = () => {
@@ -1573,9 +1691,6 @@ export default function App() {
       };
 
       saveCurrentOrder(nextOrder);
-
-      clearCartStorage(auth);
-      setCart([]);
 
       setOrderSuccess({
         id: result.id,
@@ -1786,7 +1901,11 @@ export default function App() {
   const handleLoggedIn = (nextAuth) => {
     setAuth(nextAuth);
     setCart(readCart(nextAuth));
-    setCurrentOrder(readCurrentOrder(nextAuth));
+    {
+      const nextOrders = readCurrentOrders(nextAuth);
+      setCurrentOrders(nextOrders);
+      setSelectedCurrentOrderId(nextOrders.length ? String(nextOrders[nextOrders.length - 1].id) : '');
+    }
     setHistoryOrders([]);
     setHistoryError('');
     closeHistoryDetail();
@@ -1800,7 +1919,8 @@ export default function App() {
     setCart([]);
     setCartOpen(false);
     setFoodDetail(null);
-    setCurrentOrder(null);
+    setCurrentOrders([]);
+    setSelectedCurrentOrderId('');
     setHistoryOrders([]);
     setHistoryError('');
     closeHistoryDetail();
@@ -1816,49 +1936,85 @@ export default function App() {
   useEffect(() => {
     if (!auth) {
       setCart([]);
-      setCurrentOrder(null);
+      setCurrentOrders([]);
+      setSelectedCurrentOrderId('');
       setHistoryOrders([]);
       setHistoryError('');
       return;
     }
 
     setCart(readCart(auth));
-    setCurrentOrder(readCurrentOrder(auth));
+
+    {
+      const nextOrders = readCurrentOrders(auth);
+      setCurrentOrders(nextOrders);
+      setSelectedCurrentOrderId((currentSelectedId) => {
+        if (nextOrders.some((order) => String(order.id) === String(currentSelectedId))) {
+          return currentSelectedId;
+        }
+
+        return nextOrders.length ? String(nextOrders[nextOrders.length - 1].id) : '';
+      });
+    }
   }, [auth]);
 
   useEffect(() => {
-    if (!currentOrder?.id) return undefined;
+    const orders = normalizeCurrentOrders(currentOrders);
+    const orderIds = orders.map((order) => order.id).filter(Boolean);
+
+    if (!auth || !orderIds.length) return undefined;
 
     let cancelled = false;
 
-    const loadCurrentOrder = async () => {
+    const loadCurrentOrders = async () => {
       try {
-        const data = await apiFetch(`/api/customer/orders/${currentOrder.id}`);
+        const results = await Promise.all(
+          orders.map(async (order) => {
+            try {
+              const data = await apiFetch(`/api/customer/orders/${order.id}`);
+
+              return {
+                ...order,
+                ...data,
+                items: normalizeOrderItems(data.items || order.items || [])
+              };
+            } catch {
+              return order;
+            }
+          })
+        );
 
         if (cancelled) return;
 
-        const nextOrder = {
-          ...currentOrder,
-          ...data,
-          items: normalizeOrderItems(data.items || currentOrder.items || [])
-        };
+        const nextOrders = removeFinishedCurrentOrders(results);
 
-        setCurrentOrder(nextOrder);
-        writeCurrentOrder(auth, nextOrder);
+        setCurrentOrders(nextOrders);
+        writeCurrentOrders(auth, nextOrders);
+
+        setSelectedCurrentOrderId((currentSelectedId) => {
+          if (nextOrders.some((order) => String(order.id) === String(currentSelectedId))) {
+            return currentSelectedId;
+          }
+
+          return nextOrders.length ? String(nextOrders[nextOrders.length - 1].id) : '';
+        });
       } catch {
         // Không hiện lỗi liên tục khi polling.
       }
     };
 
-    loadCurrentOrder();
+    loadCurrentOrders();
 
-    const timer = window.setInterval(loadCurrentOrder, 2000);
+    const timer = window.setInterval(loadCurrentOrders, 2000);
 
     return () => {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [currentOrder?.id, auth]);
+  }, [
+    auth,
+    currentOrders.map((order) => order.id).join('|')
+  ]);
 
 
 
@@ -1987,12 +2143,17 @@ export default function App() {
 
           {activeTab === 'current' && (
             <CurrentOrderView
-              currentOrder={currentOrder}
+              currentOrders={currentOrders}
+              selectedOrderId={currentOrder?.id || selectedCurrentOrderId}
               promotions={promotions}
               promotionsOpen={promotionsOpen}
               loadingPromotions={loadingPromotions}
               applyingPromotionId={applyingPromotionId}
               requestingPayment={requestingPayment}
+              onSelectOrder={(orderId) => {
+                setSelectedCurrentOrderId(String(orderId || ''));
+                setPromotionsOpen(false);
+              }}
               onTogglePromotions={togglePromotions}
               onApplyPromotion={applyPromotionToCurrentOrder}
               onRequestPayment={requestPayment}

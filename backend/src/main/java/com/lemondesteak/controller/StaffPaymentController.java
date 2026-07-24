@@ -33,40 +33,36 @@ public class StaffPaymentController {
 
         if ("PAID".equals(normalized)) {
             whereSql = """
-                    where coalesce(o."orderStatus"::text, '') = 'PAID'
+                    where coalesce(o.\"orderStatus\"::text, '') = 'PAID'
                     """;
         } else {
             whereSql = """
-                    where (
-                        coalesce(o."orderStatus"::text, '') = 'REQUEST_PAYMENT'
-                        or coalesce(t.status, '') = 'REQUEST_PAYMENT'
-                    )
-                    and coalesce(o."orderStatus"::text, '') not in ('PAID', 'CANCELLED', 'COMPLETED')
+                    where coalesce(o.\"orderStatus\"::text, '') = 'REQUEST_PAYMENT'
                     """;
         }
 
         String sql = """
                 select
                     o.id as order_id,
-                    o."orderNumber" as order_number,
-                    o."createdAt" as created_at,
-                    o."updatedAt" as updated_at,
-                    o."orderStatus"::text as order_status,
-                    o."tableId" as table_id,
-                    o."subTotal" as sub_total,
-                    o."taxAmount" as tax_amount,
-                    o."serviceCharge" as service_charge,
-                    o."discountAmount" as discount_amount,
-                    o."totalAmount" as total_amount,
-                    o."promoCode" as promo_code,
-                    t."tableNumber" as table_number,
+                    o.\"orderNumber\" as order_number,
+                    o.\"createdAt\" as created_at,
+                    o.\"updatedAt\" as updated_at,
+                    o.\"orderStatus\"::text as order_status,
+                    o.\"tableId\" as table_id,
+                    o.\"subTotal\" as sub_total,
+                    o.\"taxAmount\" as tax_amount,
+                    o.\"serviceCharge\" as service_charge,
+                    o.\"discountAmount\" as discount_amount,
+                    o.\"totalAmount\" as total_amount,
+                    o.\"promoCode\" as promo_code,
+                    t.\"tableNumber\" as table_number,
                     t.status as table_status,
                     p.name as promotion_name
                 from orders o
-                left join tables t on t.id = o."tableId"
-                left join promotions p on p.id = o."promoCode"
+                left join tables t on t.id = o.\"tableId\"
+                left join promotions p on p.id = o.\"promoCode\"
                 """ + whereSql + """
-                order by o."updatedAt" desc, o."createdAt" desc
+                order by o.\"updatedAt\" desc, o.\"createdAt\" desc
                 limit 100
                 """;
 
@@ -141,6 +137,12 @@ public class StaffPaymentController {
     ) {
         Map<String, Object> order = findOrder(orderId);
 
+        String orderStatus = stringValue(order.get("orderStatus"));
+
+        if ("PAID".equalsIgnoreCase(orderStatus)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Đơn hàng này đã thanh toán.");
+        }
+
         BigDecimal totalAmount = bigDecimalValue(order.get("totalAmount"));
         BigDecimal paidAmount = request == null || request.paidAmount == null
                 ? totalAmount
@@ -169,22 +171,61 @@ public class StaffPaymentController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn hàng.");
         }
 
-        if (tableId != null && !tableId.isBlank()) {
-            setTableStatus(tableId, "EMPTY");
-        }
+        String nextTableStatus = syncTableStatusAfterPayment(tableId);
 
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("success", true);
         response.put("orderId", orderId);
         response.put("tableId", tableId);
         response.put("orderStatus", "PAID");
-        response.put("tableStatus", "EMPTY");
+        response.put("tableStatus", nextTableStatus);
         response.put("totalAmount", totalAmount);
         response.put("paidAmount", paidAmount);
         response.put("changeAmount", paidAmount.subtract(totalAmount));
         response.put("message", "Xác nhận thanh toán thành công.");
 
         return response;
+    }
+
+    private String syncTableStatusAfterPayment(String tableId) {
+        if (tableId == null || tableId.isBlank()) {
+            return "EMPTY";
+        }
+
+        Integer requestPaymentCount = jdbcTemplate.queryForObject(
+                """
+                select count(*)
+                from orders
+                where "tableId" = ?
+                  and coalesce("orderStatus"::text, '') = 'REQUEST_PAYMENT'
+                """,
+                Integer.class,
+                tableId
+        );
+
+        if (requestPaymentCount != null && requestPaymentCount > 0) {
+            setTableStatus(tableId, "REQUEST_PAYMENT");
+            return "REQUEST_PAYMENT";
+        }
+
+        Integer activeOrderCount = jdbcTemplate.queryForObject(
+                """
+                select count(*)
+                from orders
+                where "tableId" = ?
+                  and coalesce("orderStatus"::text, '') not in ('PAID', 'CANCELLED', 'COMPLETED')
+                """,
+                Integer.class,
+                tableId
+        );
+
+        if (activeOrderCount != null && activeOrderCount > 0) {
+            setTableStatus(tableId, "USING");
+            return "USING";
+        }
+
+        setTableStatus(tableId, "EMPTY");
+        return "EMPTY";
     }
 
     private Map<String, Object> findOrder(String orderId) {
@@ -293,7 +334,17 @@ public class StaffPaymentController {
             return number.intValue();
         }
 
-        return Integer.parseInt(String.valueOf(value));
+        String text = String.valueOf(value).trim();
+
+        if (text.isBlank()) {
+            return 0;
+        }
+
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException ex) {
+            return 0;
+        }
     }
 
     private BigDecimal bigDecimalValue(Object value) {
@@ -318,8 +369,9 @@ public class StaffPaymentController {
         return new BigDecimal(text);
     }
 
-    public static class PaymentRequest {
-        public BigDecimal paidAmount;
-        public String paymentMethod;
+    public record PaymentRequest(
+            BigDecimal paidAmount,
+            String paymentMethod
+    ) {
     }
 }
