@@ -10,10 +10,29 @@ import StaffOrderTracking from './features/orders/StaffOrderTracking.jsx';
 import StaffPaymentPage from './features/payments/StaffPaymentPage.jsx';
 import './styles.css';
 
-const CUSTOMER_BASE_URL =
+function normalizeBaseUrl(url) {
+  const cleanUrl = String(url || '').trim().replace(/\/+$/, '');
+
+  if (!cleanUrl) {
+    return '';
+  }
+
+  if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+    return cleanUrl;
+  }
+
+  return `https://${cleanUrl}`;
+}
+
+const CUSTOMER_BASE_URL = normalizeBaseUrl(
   import.meta.env.VITE_CUSTOMER_BASE_URL ||
   import.meta.env.VITE_CUSTOMER_URL ||
-  'http://localhost:5173';
+  (
+    window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://localhost:5173'
+      : ''
+  )
+);
 
 const REALTIME_TABLE_INTERVAL_MS = 1500;
 
@@ -101,8 +120,9 @@ function getTableTitle(table) {
 function buildQrUrl(table) {
   const tableId = table.id;
   const tableNumber = getTableNumber(table);
+  const baseUrl = CUSTOMER_BASE_URL || 'https://lemondesteak.vercel.app';
 
-  return `${CUSTOMER_BASE_URL}/t/${encodeURIComponent(
+  return `${baseUrl}/t/${encodeURIComponent(
     tableNumber
   )}?tableId=${encodeURIComponent(tableId)}`;
 }
@@ -268,6 +288,8 @@ function QrModal({ table, onClose }) {
         <div className="qr-box">
           <img className="qr-image" src={qrImageUrl} alt="Mã QR đặt món" />
         </div>
+
+        <p className="qr-url-text">{qrUrl}</p>
 
         <button className="qr-print-btn" type="button" onClick={printQr}>
           In QR
