@@ -20,7 +20,10 @@ public class StaffTableController {
     private final EntityManager entityManager;
 
     @GetMapping
+    @Transactional
     public List<StaffTableResponse> getTables() {
+        syncTableStatus();
+
         List<Object[]> rows = entityManager
                 .createNativeQuery("""
                         select
@@ -43,7 +46,9 @@ public class StaffTableController {
     }
 
     @GetMapping("/{id}")
+    @Transactional
     public StaffTableResponse getTableById(@PathVariable String id) {
+        syncTableStatus();
         return findById(id);
     }
 
@@ -66,6 +71,61 @@ public class StaffTableController {
             @RequestBody UpdateTableStatusRequest request
     ) {
         return updateStatus(id, request);
+    }
+
+    private void syncTableStatus() {
+        entityManager
+                .createNativeQuery("""
+                        update tables t
+                        set status = 'EMPTY',
+                            "updatedAt" = now()
+                        where t."isActive" = true
+                          and t.status <> 'EMPTY'
+                          and not exists (
+                              select 1
+                              from orders o
+                              where o."tableId" = t.id
+                                and coalesce(o."orderStatus"::text, '') not in ('PAID', 'CANCELLED', 'COMPLETED')
+                          )
+                        """)
+                .executeUpdate();
+
+        entityManager
+                .createNativeQuery("""
+                        update tables t
+                        set status = 'REQUEST_PAYMENT',
+                            "updatedAt" = now()
+                        where t."isActive" = true
+                          and exists (
+                              select 1
+                              from orders o
+                              where o."tableId" = t.id
+                                and coalesce(o."orderStatus"::text, '') = 'REQUEST_PAYMENT'
+                          )
+                        """)
+                .executeUpdate();
+
+        entityManager
+                .createNativeQuery("""
+                        update tables t
+                        set status = 'USING',
+                            "updatedAt" = now()
+                        where t."isActive" = true
+                          and t.status <> 'REQUEST_PAYMENT'
+                          and exists (
+                              select 1
+                              from orders o
+                              where o."tableId" = t.id
+                                and coalesce(o."orderStatus"::text, '') not in ('PAID', 'CANCELLED', 'COMPLETED', 'REQUEST_PAYMENT')
+                          )
+                          and not exists (
+                              select 1
+                              from orders o
+                              where o."tableId" = t.id
+                                and coalesce(o."orderStatus"::text, '') = 'REQUEST_PAYMENT'
+                          )
+                        """)
+                .executeUpdate();
     }
 
     private StaffTableResponse findById(String id) {
@@ -110,6 +170,7 @@ public class StaffTableController {
 
         if (
                 value.equals("EMPTY") ||
+                value.equals("TRỐNG") ||
                 value.equals("TRONG") ||
                 value.equals("FREE") ||
                 value.equals("AVAILABLE")
@@ -122,6 +183,7 @@ public class StaffTableController {
                 value.equals("OCCUPIED") ||
                 value.equals("DINING") ||
                 value.equals("IN_USE") ||
+                value.equals("ĐANG DÙNG BỮA") ||
                 value.equals("DANG_DUNG_BUA")
         ) {
             return "USING";
@@ -131,6 +193,7 @@ public class StaffTableController {
                 value.equals("REQUEST_PAYMENT") ||
                 value.equals("WAITING_PAYMENT") ||
                 value.equals("PAYMENT_REQUESTED") ||
+                value.equals("YÊU CẦU THANH TOÁN") ||
                 value.equals("YEU_CAU_THANH_TOAN")
         ) {
             return "REQUEST_PAYMENT";
@@ -144,19 +207,43 @@ public class StaffTableController {
     }
 
     private Integer intValue(Object value) {
-        if (value == null) return 0;
-        if (value instanceof Number number) return number.intValue();
-        return Integer.parseInt(String.valueOf(value));
+        if (value == null) {
+            return 0;
+        }
+
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+
+        String text = String.valueOf(value).trim();
+
+        if (text.isBlank()) {
+            return 0;
+        }
+
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException ex) {
+            return 0;
+        }
     }
 
     private Boolean booleanValue(Object value) {
-        if (value == null) return false;
-        if (value instanceof Boolean bool) return bool;
+        if (value == null) {
+            return false;
+        }
+
+        if (value instanceof Boolean bool) {
+            return bool;
+        }
+
         return Boolean.parseBoolean(String.valueOf(value));
     }
 
     private OffsetDateTime offsetDateTimeValue(Object value) {
-        if (value == null) return null;
+        if (value == null) {
+            return null;
+        }
 
         if (value instanceof OffsetDateTime offsetDateTime) {
             return offsetDateTime;

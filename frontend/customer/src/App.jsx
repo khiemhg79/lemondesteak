@@ -671,25 +671,26 @@ function CartSheet({
               </div>
             </div>
 
-            {orderSuccess && (
-              <div className="cart-success-modal">
-                <section>
-                  <p>
-                    Đã tạo đơn
-                    {orderSuccess.orderNumber ? ` #${orderSuccess.orderNumber}` : ''}.
-                    {' '}
-                    Cảm ơn bạn!
-                  </p>
-
-                  <button type="button" onClick={onCloseSuccess}>
-                    Đóng
-                  </button>
-                </section>
-              </div>
-            )}
           </>
         ) : (
           <div className="cart-empty">Giỏ hàng đang trống.</div>
+        )}
+
+        {orderSuccess && (
+          <div className="cart-success-modal">
+            <section>
+              <p>
+                Đã tạo đơn
+                {orderSuccess.orderNumber ? ` #${orderSuccess.orderNumber}` : ''}.
+                {' '}
+                Cảm ơn bạn!
+              </p>
+
+              <button type="button" onClick={onCloseSuccess}>
+                Đóng
+              </button>
+            </section>
+          </div>
         )}
       </section>
     </div>
@@ -1309,6 +1310,8 @@ export default function App() {
   const cartQuantity = auth ? cart.reduce((sum, item) => sum + item.quantity, 0) : 0;
   const cartTotal = auth ? cart.reduce((sum, item) => sum + item.price * item.quantity, 0) : 0;
 
+  const isCustomerLoggedIn = Boolean(auth?.token || auth?.accessToken || auth?.jwt);
+
   const displayName =
     auth?.fullName ||
     auth?.username ||
@@ -1570,6 +1573,9 @@ export default function App() {
       };
 
       saveCurrentOrder(nextOrder);
+
+      clearCartStorage(auth);
+      setCart([]);
 
       setOrderSuccess({
         id: result.id,
@@ -1875,10 +1881,14 @@ export default function App() {
           <strong>Lemonde Steak</strong>
 
           <div className="customer-header-right">
-            {displayName && <span>Chào, {displayName}</span>}
+            {isCustomerLoggedIn && displayName && <span>Chào, {displayName}</span>}
 
-            <button type="button" onClick={auth ? logout : () => setAuthOpen(true)}>
-              <LogIn size={16} />
+            <button
+              className={isCustomerLoggedIn ? 'header-logout-btn' : 'header-login-btn'}
+              type="button"
+              onClick={isCustomerLoggedIn ? logout : () => setAuthOpen(true)}
+            >
+              {isCustomerLoggedIn ? <LogIn size={16} /> : 'Đăng nhập'}
             </button>
           </div>
         </header>
