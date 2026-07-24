@@ -763,6 +763,28 @@ public class CustomerOrderController {
         }
     }
 
+    private Boolean booleanValue(Object value) {
+        if (value == null) {
+            return false;
+        }
+
+        if (value instanceof Boolean bool) {
+            return bool;
+        }
+
+        String text = String.valueOf(value).trim();
+
+        if (text.isBlank()) {
+            return false;
+        }
+
+        return text.equalsIgnoreCase("true")
+                || text.equalsIgnoreCase("t")
+                || text.equalsIgnoreCase("1")
+                || text.equalsIgnoreCase("yes")
+                || text.equalsIgnoreCase("y");
+    }
+
     private int intValue(Object value) {
         if (value == null) {
             return 0;
