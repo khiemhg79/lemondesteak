@@ -502,7 +502,9 @@ function AuthModal({ open, onClose, onLoggedIn }) {
           fullName: form.fullName.trim(),
           username: form.fullName.trim(),
           phone: form.phone.trim(),
-          password: form.password
+          email: form.email?.trim() || null,
+          password: form.password,
+          confirmPassword: form.confirmPassword
         }
       });
 
