@@ -2167,6 +2167,7 @@ export default function App() {
               loading={historyLoading}
               error={historyError}
               onReload={() => loadHistoryOrders(false)}
+              onSelectOrder={openHistoryDetail}
             />
           )}
 
