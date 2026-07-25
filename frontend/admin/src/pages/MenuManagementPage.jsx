@@ -70,6 +70,124 @@ function comboStatusText(combo) {
         : { label: 'Tạm dừng', className: 'inactive' };
 }
 
+function normalizeText(value) {
+    return String(value || '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^\w\s]/g, ' ')
+        .replace(/\s+/g, ' ');
+}
+
+function findMenuItemByName(name, menuItems = []) {
+    const cleanName = normalizeText(name);
+
+    if (!cleanName) return null;
+
+    return menuItems.find((item) => {
+        const itemName = normalizeText(item.name);
+
+        return itemName === cleanName ||
+            itemName.includes(cleanName) ||
+            cleanName.includes(itemName);
+    }) || null;
+}
+
+function normalizeComboLines(combo, menuItems = []) {
+    const rawLines =
+        combo?.items ||
+        combo?.comboItems ||
+        combo?.comboDetails ||
+        combo?.details ||
+        combo?.menuItems ||
+        combo?.foods ||
+        [];
+
+    if (Array.isArray(rawLines) && rawLines.length) {
+        return rawLines
+            .map((line) => {
+                const itemId =
+                    line.itemId ||
+                    line.menuItemId ||
+                    line.foodId ||
+                    line.productId ||
+                    line.item?.id ||
+                    line.menuItem?.id ||
+                    line.food?.id ||
+                    '';
+
+                const foundItem =
+                    menuItems.find((item) => String(item.id) === String(itemId)) ||
+                    findMenuItemByName(
+                        line.itemName ||
+                        line.menuItemName ||
+                        line.foodName ||
+                        line.name ||
+                        line.item?.name ||
+                        line.menuItem?.name ||
+                        line.food?.name,
+                        menuItems
+                    );
+
+                const itemName =
+                    line.itemName ||
+                    line.menuItemName ||
+                    line.foodName ||
+                    line.name ||
+                    line.item?.name ||
+                    line.menuItem?.name ||
+                    line.food?.name ||
+                    foundItem?.name ||
+                    'Món ăn';
+
+                return {
+                    comboItemId:
+                        line.comboItemId ||
+                        line.comboDetailId ||
+                        line.id ||
+                        `${combo?.id || 'combo'}-${itemId || itemName}`,
+                    itemId: itemId || foundItem?.id || '',
+                    itemName,
+                    itemPrice:
+                        Number(
+                            line.itemPrice ||
+                            line.menuItemPrice ||
+                            line.foodPrice ||
+                            line.price ||
+                            line.item?.price ||
+                            line.menuItem?.price ||
+                            line.food?.price ||
+                            foundItem?.price ||
+                            0
+                        ),
+                    quantity: Math.max(1, Number(line.quantity || line.qty || 1))
+                };
+            })
+            .filter((line) => line.itemName);
+    }
+
+    const descriptionParts = String(combo?.description || '')
+        .replace(/\.$/, '')
+        .split(/\s*\+\s*/)
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+    if (!descriptionParts.length) return [];
+
+    return descriptionParts.map((name, index) => {
+        const foundItem = findMenuItemByName(name, menuItems);
+
+        return {
+            comboItemId: `${combo?.id || 'combo'}-description-${index}`,
+            itemId: foundItem?.id || '',
+            itemName: foundItem?.name || name,
+            itemPrice: Number(foundItem?.price || 0),
+            quantity: 1
+        };
+    });
+}
+
 function categoryStatusText(category) {
     return category.isActive
         ? { label: 'Hoạt động', className: 'active' }
@@ -336,10 +454,12 @@ function ComboModal({ open, mode, combo, items, onClose, onSaved }) {
                 description: combo.description || '',
                 image: combo.image || '',
                 isActive: combo.isActive !== false,
-                items: (combo.items || []).map((line) => ({
-                    itemId: line.itemId,
-                    quantity: line.quantity || 1
-                }))
+                items: normalizeComboLines(combo, items)
+                    .filter((line) => line.itemId)
+                    .map((line) => ({
+                        itemId: line.itemId,
+                        quantity: line.quantity || 1
+                    }))
             });
         } else {
             setForm(emptyComboForm());
@@ -348,7 +468,7 @@ function ComboModal({ open, mode, combo, items, onClose, onSaved }) {
         setSelectedItemId('');
         setSelectedQuantity('1');
         setError('');
-    }, [open, isEdit, combo]);
+    }, [open, isEdit, combo, items]);
 
     if (!open) return null;
 
@@ -362,7 +482,7 @@ function ComboModal({ open, mode, combo, items, onClose, onSaved }) {
     };
 
     const itemById = (itemId) => {
-        return items.find((item) => item.id === itemId);
+        return items.find((item) => String(item.id) === String(itemId));
     };
 
     const addItemToCombo = () => {
@@ -1175,6 +1295,7 @@ export default function MenuManagementPage() {
                                 {combos.map((combo, index) => {
                                     const status = comboStatusText(combo);
                                     const isExpanded = expandedComboId === combo.id;
+                                    const comboLines = normalizeComboLines(combo, items);
 
                                     return (
                                         <Fragment key={combo.id}>
@@ -1236,15 +1357,19 @@ export default function MenuManagementPage() {
                                                         <section className="combo-detail-box">
                                                             <h3>Các món trong combo</h3>
 
-                                                            {combo.items?.length ? (
-                                                                combo.items.map((line) => (
+                                                            {comboLines.length ? (
+                                                                comboLines.map((line) => (
                                                                     <article
                                                                         className="combo-detail-line"
                                                                         key={line.comboItemId}
                                                                     >
                                                                         <div>
                                                                             <b>{line.itemName}</b>
-                                                                            <span>{money(line.itemPrice)}</span>
+                                                                            <span>
+                                                                                {line.itemPrice
+                                                                                    ? money(line.itemPrice)
+                                                                                    : 'Giá đã nằm trong combo'}
+                                                                            </span>
                                                                         </div>
 
                                                                         <strong>x{line.quantity}</strong>
