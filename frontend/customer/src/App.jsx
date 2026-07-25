@@ -220,10 +220,24 @@ async function apiFetch(path, options = {}) {
   }
 
   if (!response.ok) {
-    throw new Error(data?.message || data?.error || data || `Lỗi ${response.status}`);
+    const error = new Error(data?.message || data?.error || data || `Lỗi ${response.status}`);
+    error.status = response.status;
+    error.statusText = response.statusText;
+    error.data = data;
+    throw error;
   }
 
   return data;
+}
+
+function isNotFoundError(error) {
+  const message = String(error?.message || '');
+
+  return error?.status === 404 ||
+    message.includes('404') ||
+    message.includes('NOT_FOUND') ||
+    message.includes('Không tìm thấy đơn hàng') ||
+    message.includes('Không tìm thấy');
 }
 
 function money(value) {
@@ -1535,6 +1549,28 @@ export default function App() {
     setSelectedCurrentOrderId(String(order.id || ''));
   };
 
+  const removeCurrentOrderById = (orderId) => {
+    if (!orderId) return;
+
+    setCurrentOrders((current) => {
+      const nextOrders = normalizeCurrentOrders(current).filter(
+        (order) => String(order.id) !== String(orderId)
+      );
+
+      writeCurrentOrders(auth, nextOrders);
+
+      setSelectedCurrentOrderId((currentSelectedId) => {
+        if (String(currentSelectedId) !== String(orderId)) {
+          return currentSelectedId;
+        }
+
+        return nextOrders.length ? String(nextOrders[nextOrders.length - 1].id) : '';
+      });
+
+      return nextOrders;
+    });
+  };
+
   const requireLogin = () => {
     if (auth) return true;
 
@@ -1767,7 +1803,13 @@ export default function App() {
       saveCurrentOrder(nextOrder);
       showMessage('Áp dụng mã giảm giá thành công.', 1800);
     } catch (err) {
-      showMessage(err.message || 'Không áp dụng được mã giảm giá.', 2200);
+      if (isNotFoundError(err)) {
+        removeCurrentOrderById(currentOrder.id);
+        setPromotionsOpen(false);
+        showMessage('Đơn hàng này đã bị xóa khỏi hệ thống.', 2200);
+      } else {
+        showMessage(err.message || 'Không áp dụng được mã giảm giá.', 2200);
+      }
     } finally {
       setApplyingPromotionId('');
     }
@@ -1795,7 +1837,13 @@ export default function App() {
       saveCurrentOrder(nextOrder);
       setPaymentSuccessOpen(true);
     } catch (err) {
-      showMessage(err.message || 'Không thể gửi yêu cầu thanh toán.', 2200);
+      if (isNotFoundError(err)) {
+        removeCurrentOrderById(currentOrder.id);
+        setPaymentSuccessOpen(false);
+        showMessage('Đơn hàng này đã bị xóa khỏi hệ thống.', 2200);
+      } else {
+        showMessage(err.message || 'Không thể gửi yêu cầu thanh toán.', 2200);
+      }
     } finally {
       setRequestingPayment(false);
     }
@@ -1824,12 +1872,7 @@ export default function App() {
 
       setHistoryOrders([]);
 
-      if (
-        errorMessage.includes('404') ||
-        errorMessage.includes('NOT_FOUND') ||
-        errorMessage.includes('Không tìm thấy đơn hàng') ||
-        errorMessage.includes('Không tìm thấy')
-      ) {
+      if (isNotFoundError(err)) {
         setHistoryError('');
       } else {
         setHistoryError(errorMessage || 'Không tải được lịch sử đặt món.');
@@ -1863,7 +1906,17 @@ export default function App() {
         items: Array.isArray(data?.items) ? data.items : []
       });
     } catch (err) {
-      setHistoryDetailError(err.message || 'Không tải được chi tiết đơn hàng.');
+      if (isNotFoundError(err)) {
+        setHistoryOrders((current) =>
+          current.filter((item) => String(item.id) !== String(order.id))
+        );
+
+        setHistoryDetailOpen(false);
+        setHistoryDetailOrder(null);
+        showMessage('Đơn hàng này đã bị xóa khỏi hệ thống.', 2200);
+      } else {
+        setHistoryDetailError(err.message || 'Không tải được chi tiết đơn hàng.');
+      }
     } finally {
       setHistoryDetailLoading(false);
     }
@@ -1978,7 +2031,11 @@ export default function App() {
                 ...data,
                 items: normalizeOrderItems(data.items || order.items || [])
               };
-            } catch {
+            } catch (err) {
+              if (isNotFoundError(err)) {
+                return null;
+              }
+
               return order;
             }
           })
