@@ -113,11 +113,12 @@ public class AdminReportController {
                         select
                             coalesce(i.name, c.name, 'Không xác định') as item_name,
                             coalesce(sum(od.quantity), 0) as total_quantity,
-                            coalesce(max(i.category), 'Combo') as category_name,
+                            coalesce(max(cat."categoryName"), 'Combo') as category_name,
                             coalesce(sum(od.quantity * od.price), 0) as total_revenue
                         from orderdetails od
                         join orders o on o.id = od."orderId"
                         left join items i on i.id = od."itemId"
+                        left join categories cat on cat.id = i."categoryId"
                         left join combos c on c.id = od."comboId"
                         where upper(o."orderStatus") <> 'CANCELLED'
                         group by coalesce(i.name, c.name, 'Không xác định')

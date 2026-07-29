@@ -954,6 +954,16 @@ export default function MenuManagementPage() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
 
+    // Pagination State
+    const [itemPage, setItemPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(5);
+
+    const [comboPage, setComboPage] = useState(1);
+    const [combosPerPage, setCombosPerPage] = useState(5);
+
+    const [categoryPage, setCategoryPage] = useState(1);
+    const [categoriesPerPage, setCategoriesPerPage] = useState(5);
+
     const availableCount = useMemo(() => {
         return items.filter((item) => item.isAvailable).length;
     }, [items]);
@@ -1102,6 +1112,25 @@ export default function MenuManagementPage() {
                 ? 'Thêm combo'
                 : 'Thêm danh mục';
 
+    // Computed Pagination Data
+    const totalItemPages = Math.ceil(items.length / itemsPerPage) || 1;
+    const paginatedItems = useMemo(() => {
+        const start = (itemPage - 1) * itemsPerPage;
+        return items.slice(start, start + itemsPerPage);
+    }, [items, itemPage, itemsPerPage]);
+
+    const totalComboPages = Math.ceil(combos.length / combosPerPage) || 1;
+    const paginatedCombos = useMemo(() => {
+        const start = (comboPage - 1) * combosPerPage;
+        return combos.slice(start, start + combosPerPage);
+    }, [combos, comboPage, combosPerPage]);
+
+    const totalCategoryPages = Math.ceil(categories.length / categoriesPerPage) || 1;
+    const paginatedCategories = useMemo(() => {
+        const start = (categoryPage - 1) * categoriesPerPage;
+        return categories.slice(start, start + categoriesPerPage);
+    }, [categories, categoryPage, categoriesPerPage]);
+
     return (
         <main className="admin-content bright-theme">
             <section className="admin-page-head">
@@ -1129,7 +1158,7 @@ export default function MenuManagementPage() {
                     className={activeTab === 'items' ? 'active' : ''}
                     onClick={() => setActiveTab('items')}
                 >
-                    Món ăn
+                    Món ăn ({items.length})
                 </button>
 
                 <button
@@ -1137,7 +1166,7 @@ export default function MenuManagementPage() {
                     className={activeTab === 'combos' ? 'active' : ''}
                     onClick={() => setActiveTab('combos')}
                 >
-                    Combo
+                    Combo ({combos.length})
                 </button>
 
                 <button
@@ -1145,7 +1174,7 @@ export default function MenuManagementPage() {
                     className={activeTab === 'categories' ? 'active' : ''}
                     onClick={() => setActiveTab('categories')}
                 >
-                    Danh mục
+                    Danh mục ({categories.length})
                 </button>
             </section>
 
@@ -1202,71 +1231,148 @@ export default function MenuManagementPage() {
                             <small className="admin-loading-sub">Vui lòng chờ trong giây lát</small>
                         </div>
                     ) : items.length ? (
-                        <table className="admin-menu-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Tên món</th>
-                                    <th>Giá</th>
-                                    <th>Danh mục</th>
-                                    <th>Trạng thái</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
+                        <>
+                            <table className="admin-menu-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Tên món</th>
+                                        <th>Giá</th>
+                                        <th>Danh mục</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
 
-                            <tbody>
-                                {items.map((item, index) => {
-                                    const status = itemStatusText(item);
+                                <tbody>
+                                    {paginatedItems.map((item, index) => {
+                                        const status = itemStatusText(item);
+                                        const actualIndex = (itemPage - 1) * itemsPerPage + index + 1;
 
-                                    return (
-                                        <tr key={item.id}>
-                                            <td>{index + 1}</td>
+                                        return (
+                                            <tr key={item.id}>
+                                                <td>{actualIndex}</td>
 
-                                            <td>
-                                                <div className="admin-menu-name">
-                                                    {item.image ? (
-                                                        <img src={item.image} alt={item.name} />
-                                                    ) : (
-                                                        <span className="admin-menu-no-image">
-                                                            <MenuSquare size={16} />
-                                                        </span>
-                                                    )}
+                                                <td>
+                                                    <div className="admin-menu-name">
+                                                        {item.image ? (
+                                                            <img src={item.image} alt={item.name} />
+                                                        ) : (
+                                                            <span className="admin-menu-no-image">
+                                                                <MenuSquare size={16} />
+                                                            </span>
+                                                        )}
 
-                                                    <div>
-                                                        <b>{item.name}</b>
-                                                        {item.description && <small>{item.description}</small>}
+                                                        <div>
+                                                            <b>{item.name}</b>
+                                                            {item.description && <small>{item.description}</small>}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </td>
+                                                </td>
 
-                                            <td>
-                                                <strong className="menu-price">{money(item.price)}</strong>
-                                            </td>
+                                                <td>
+                                                    <strong className="menu-price">{money(item.price)}</strong>
+                                                </td>
 
-                                            <td>{item.categoryName || 'Chưa có'}</td>
+                                                <td>{item.categoryName || 'Chưa có'}</td>
 
-                                            <td>
-                                                <span className={`menu-status-chip ${status.className}`}>
-                                                    {status.label}
-                                                </span>
-                                            </td>
+                                                <td>
+                                                    <span className={`menu-status-chip ${status.className}`}>
+                                                        {status.label}
+                                                    </span>
+                                                </td>
 
-                                            <td>
-                                                <div className="admin-row-actions">
-                                                    <button type="button" onClick={() => openEditItem(item)}>
-                                                        <Edit3 size={15} />
-                                                    </button>
+                                                <td>
+                                                    <div className="admin-row-actions">
+                                                        <button type="button" onClick={() => openEditItem(item)}>
+                                                            <Edit3 size={15} />
+                                                        </button>
 
-                                                    <button type="button" onClick={() => askDeleteItem(item)}>
-                                                        <Trash2 size={15} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                                                        <button type="button" onClick={() => askDeleteItem(item)}>
+                                                            <Trash2 size={15} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+
+                            {/* Items Pagination Controls */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderTop: '1px solid #f1f5f9', background: '#fafafa', borderBottomLeftRadius: 16, borderBottomRightRadius: 16, flexWrap: 'wrap', gap: 10 }}>
+                                <small style={{ color: '#64748b', fontWeight: 700 }}>
+                                    Hiển thị {(itemPage - 1) * itemsPerPage + 1} - {Math.min(itemPage * itemsPerPage, items.length)} trên {items.length} món ăn (Trang {itemPage}/{totalItemPages})
+                                </small>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginRight: 8 }}>
+                                        <small style={{ color: '#475569', fontWeight: 800 }}>Hiển thị:</small>
+                                        {[5, 10, 20].map((size) => (
+                                            <button
+                                                key={size}
+                                                type="button"
+                                                onClick={() => { setItemsPerPage(size); setItemPage(1); }}
+                                                style={{
+                                                    background: itemsPerPage === size ? '#e63917' : '#fff',
+                                                    color: itemsPerPage === size ? '#fff' : '#475569',
+                                                    border: '1px solid #cbd5e1',
+                                                    borderRadius: 6,
+                                                    padding: '2px 8px',
+                                                    fontSize: 12,
+                                                    fontWeight: 800,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                {size}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        disabled={itemPage <= 1}
+                                        onClick={() => setItemPage((p) => Math.max(p - 1, 1))}
+                                        style={{ background: itemPage <= 1 ? '#f1f5f9' : '#fff', color: itemPage <= 1 ? '#94a3b8' : '#0f172a', border: '1px solid #cbd5e1', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 800, cursor: itemPage <= 1 ? 'not-allowed' : 'pointer' }}
+                                    >
+                                        Trang trước
+                                    </button>
+
+                                    {Array.from({ length: totalItemPages }).map((_, pIdx) => {
+                                        const pNum = pIdx + 1;
+                                        return (
+                                            <button
+                                                key={pNum}
+                                                type="button"
+                                                onClick={() => setItemPage(pNum)}
+                                                style={{
+                                                    background: itemPage === pNum ? '#e63917' : '#fff',
+                                                    color: itemPage === pNum ? '#fff' : '#475569',
+                                                    border: itemPage === pNum ? 'none' : '1px solid #cbd5e1',
+                                                    borderRadius: 6,
+                                                    width: 28,
+                                                    height: 28,
+                                                    fontWeight: 800,
+                                                    fontSize: 12,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                {pNum}
+                                            </button>
+                                        );
+                                    })}
+
+                                    <button
+                                        type="button"
+                                        disabled={itemPage >= totalItemPages}
+                                        onClick={() => setItemPage((p) => Math.min(p + 1, totalItemPages))}
+                                        style={{ background: itemPage >= totalItemPages ? '#f1f5f9' : '#fff', color: itemPage >= totalItemPages ? '#94a3b8' : '#0f172a', border: '1px solid #cbd5e1', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 800, cursor: itemPage >= totalItemPages ? 'not-allowed' : 'pointer' }}
+                                    >
+                                        Trang sau
+                                    </button>
+                                </div>
+                            </div>
+                        </>
                     ) : (
                         <div className="admin-empty">
                             <MenuSquare size={38} />
@@ -1285,113 +1391,167 @@ export default function MenuManagementPage() {
                             <p>Đang tải danh sách combo...</p>
                         </div>
                     ) : combos.length ? (
-                        <table className="admin-menu-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Tên combo</th>
-                                    <th>Giá</th>
-                                    <th>Trạng thái</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
+                        <>
+                            <table className="admin-menu-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Tên combo</th>
+                                        <th>Giá</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
 
-                            <tbody>
-                                {combos.map((combo, index) => {
-                                    const status = comboStatusText(combo);
-                                    const isExpanded = expandedComboId === combo.id;
-                                    const comboLines = normalizeComboLines(combo, items);
+                                <tbody>
+                                    {paginatedCombos.map((combo, index) => {
+                                        const status = comboStatusText(combo);
+                                        const isExpanded = expandedComboId === combo.id;
+                                        const comboLines = normalizeComboLines(combo, items);
+                                        const actualIndex = (comboPage - 1) * combosPerPage + index + 1;
 
-                                    return (
-                                        <Fragment key={combo.id}>
-                                            <tr>
-                                                <td>{index + 1}</td>
-
-                                                <td>
-                                                    <div className="admin-menu-name">
-                                                        {combo.image ? (
-                                                            <img src={combo.image} alt={combo.name} />
-                                                        ) : (
-                                                            <span className="admin-menu-no-image">
-                                                                <MenuSquare size={16} />
-                                                            </span>
-                                                        )}
-
-                                                        <div>
-                                                            <b>{combo.name}</b>
-                                                            {combo.description && <small>{combo.description}</small>}
-                                                        </div>
-                                                    </div>
-                                                </td>
-
-                                                <td>
-                                                    <strong className="menu-price">{money(combo.price)}</strong>
-                                                </td>
-
-                                                <td>
-                                                    <span className={`menu-status-chip ${status.className}`}>
-                                                        {status.label}
-                                                    </span>
-                                                </td>
-
-                                                <td>
-                                                    <div className="admin-row-actions">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                setExpandedComboId(isExpanded ? '' : combo.id)
-                                                            }
-                                                        >
-                                                            {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-                                                        </button>
-
-                                                        <button type="button" onClick={() => openEditCombo(combo)}>
-                                                            <Edit3 size={15} />
-                                                        </button>
-
-                                                        <button type="button" onClick={() => askDeleteCombo(combo)}>
-                                                            <Trash2 size={15} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-
-                                            {isExpanded && (
+                                        return (
+                                            <Fragment key={combo.id}>
                                                 <tr>
-                                                    <td colSpan={5}>
-                                                        <section className="combo-detail-box">
-                                                            <h3>Các món trong combo</h3>
+                                                    <td>{actualIndex}</td>
 
-                                                            {comboLines.length ? (
-                                                                comboLines.map((line) => (
-                                                                    <article
-                                                                        className="combo-detail-line"
-                                                                        key={line.comboItemId}
-                                                                    >
-                                                                        <div>
-                                                                            <b>{line.itemName}</b>
-                                                                            <span>
-                                                                                {line.itemPrice
-                                                                                    ? money(line.itemPrice)
-                                                                                    : 'Giá đã nằm trong combo'}
-                                                                            </span>
-                                                                        </div>
-
-                                                                        <strong>x{line.quantity}</strong>
-                                                                    </article>
-                                                                ))
+                                                    <td>
+                                                        <div className="admin-menu-name">
+                                                            {combo.image ? (
+                                                                <img src={combo.image} alt={combo.name} />
                                                             ) : (
-                                                                <p>Combo chưa có món.</p>
+                                                                <span className="admin-menu-no-image">
+                                                                    <MenuSquare size={16} />
+                                                                </span>
                                                             )}
-                                                        </section>
+
+                                                            <div>
+                                                                <b>{combo.name}</b>
+                                                                {combo.description && <small>{combo.description}</small>}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+
+                                                    <td>
+                                                        <strong className="menu-price">{money(combo.price)}</strong>
+                                                    </td>
+
+                                                    <td>
+                                                        <span className={`menu-status-chip ${status.className}`}>
+                                                            {status.label}
+                                                        </span>
+                                                    </td>
+
+                                                    <td>
+                                                        <div className="admin-row-actions">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    setExpandedComboId(isExpanded ? '' : combo.id)
+                                                                }
+                                                            >
+                                                                {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                                                            </button>
+
+                                                            <button type="button" onClick={() => openEditCombo(combo)}>
+                                                                <Edit3 size={15} />
+                                                            </button>
+
+                                                            <button type="button" onClick={() => askDeleteCombo(combo)}>
+                                                                <Trash2 size={15} />
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
-                                            )}
-                                        </Fragment>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+
+                                                {isExpanded && (
+                                                    <tr>
+                                                        <td colSpan={5}>
+                                                            <section className="combo-detail-box">
+                                                                <h3>Các món trong combo</h3>
+
+                                                                {comboLines.length ? (
+                                                                    comboLines.map((line) => (
+                                                                        <article
+                                                                            className="combo-detail-line"
+                                                                            key={line.comboItemId}
+                                                                        >
+                                                                            <div>
+                                                                                <b>{line.itemName}</b>
+                                                                                <span>
+                                                                                    {line.itemPrice
+                                                                                        ? money(line.itemPrice)
+                                                                                        : 'Giá đã nằm trong combo'}
+                                                                                </span>
+                                                                            </div>
+
+                                                                            <strong>x{line.quantity}</strong>
+                                                                        </article>
+                                                                    ))
+                                                                ) : (
+                                                                    <p>Combo chưa có món.</p>
+                                                                )}
+                                                            </section>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </Fragment>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+
+                            {/* Combos Pagination Controls */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderTop: '1px solid #f1f5f9', background: '#fafafa', borderBottomLeftRadius: 16, borderBottomRightRadius: 16, flexWrap: 'wrap', gap: 10 }}>
+                                <small style={{ color: '#64748b', fontWeight: 700 }}>
+                                    Hiển thị {(comboPage - 1) * combosPerPage + 1} - {Math.min(comboPage * combosPerPage, combos.length)} trên {combos.length} combo (Trang {comboPage}/{totalComboPages})
+                                </small>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <button
+                                        type="button"
+                                        disabled={comboPage <= 1}
+                                        onClick={() => setComboPage((p) => Math.max(p - 1, 1))}
+                                        style={{ background: comboPage <= 1 ? '#f1f5f9' : '#fff', color: comboPage <= 1 ? '#94a3b8' : '#0f172a', border: '1px solid #cbd5e1', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 800, cursor: comboPage <= 1 ? 'not-allowed' : 'pointer' }}
+                                    >
+                                        Trang trước
+                                    </button>
+
+                                    {Array.from({ length: totalComboPages }).map((_, pIdx) => {
+                                        const pNum = pIdx + 1;
+                                        return (
+                                            <button
+                                                key={pNum}
+                                                type="button"
+                                                onClick={() => setComboPage(pNum)}
+                                                style={{
+                                                    background: comboPage === pNum ? '#e63917' : '#fff',
+                                                    color: comboPage === pNum ? '#fff' : '#475569',
+                                                    border: comboPage === pNum ? 'none' : '1px solid #cbd5e1',
+                                                    borderRadius: 6,
+                                                    width: 28,
+                                                    height: 28,
+                                                    fontWeight: 800,
+                                                    fontSize: 12,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                {pNum}
+                                            </button>
+                                        );
+                                    })}
+
+                                    <button
+                                        type="button"
+                                        disabled={comboPage >= totalComboPages}
+                                        onClick={() => setComboPage((p) => Math.min(p + 1, totalComboPages))}
+                                        style={{ background: comboPage >= totalComboPages ? '#f1f5f9' : '#fff', color: comboPage >= totalComboPages ? '#94a3b8' : '#0f172a', border: '1px solid #cbd5e1', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 800, cursor: comboPage >= totalComboPages ? 'not-allowed' : 'pointer' }}
+                                    >
+                                        Trang sau
+                                    </button>
+                                </div>
+                            </div>
+                        </>
                     ) : (
                         <div className="admin-empty">
                             <MenuSquare size={38} />
@@ -1410,59 +1570,113 @@ export default function MenuManagementPage() {
                             <p>Đang tải danh sách danh mục...</p>
                         </div>
                     ) : categories.length ? (
-                        <table className="admin-menu-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Tên danh mục</th>
-                                    <th>Số lượng món</th>
-                                    <th>Thứ tự</th>
-                                    <th>Trạng thái</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
+                        <>
+                            <table className="admin-menu-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Tên danh mục</th>
+                                        <th>Số lượng món</th>
+                                        <th>Thứ tự</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
 
-                            <tbody>
-                                {categories.map((category, index) => {
-                                    const status = categoryStatusText(category);
+                                <tbody>
+                                    {paginatedCategories.map((category, index) => {
+                                        const status = categoryStatusText(category);
+                                        const actualIndex = (categoryPage - 1) * categoriesPerPage + index + 1;
 
-                                    return (
-                                        <tr key={category.id}>
-                                            <td>{index + 1}</td>
+                                        return (
+                                            <tr key={category.id}>
+                                                <td>{actualIndex}</td>
 
-                                            <td>
-                                                <div>
-                                                    <b>{category.categoryName}</b>
-                                                    {category.description && <small>{category.description}</small>}
-                                                </div>
-                                            </td>
+                                                <td>
+                                                    <div>
+                                                        <b>{category.categoryName}</b>
+                                                        {category.description && <small>{category.description}</small>}
+                                                    </div>
+                                                </td>
 
-                                            <td>{category.itemCount || 0}</td>
+                                                <td>{category.itemCount || 0}</td>
 
-                                            <td>{category.sortOrder || 0}</td>
+                                                <td>{category.sortOrder || 0}</td>
 
-                                            <td>
-                                                <span className={`menu-status-chip ${status.className}`}>
-                                                    {status.label}
-                                                </span>
-                                            </td>
+                                                <td>
+                                                    <span className={`menu-status-chip ${status.className}`}>
+                                                        {status.label}
+                                                    </span>
+                                                </td>
 
-                                            <td>
-                                                <div className="admin-row-actions">
-                                                    <button type="button" onClick={() => openEditCategory(category)}>
-                                                        <Edit3 size={15} />
-                                                    </button>
+                                                <td>
+                                                    <div className="admin-row-actions">
+                                                        <button type="button" onClick={() => openEditCategory(category)}>
+                                                            <Edit3 size={15} />
+                                                        </button>
 
-                                                    <button type="button" onClick={() => askDeleteCategory(category)}>
-                                                        <Trash2 size={15} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                                                        <button type="button" onClick={() => askDeleteCategory(category)}>
+                                                            <Trash2 size={15} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+
+                            {/* Categories Pagination Controls */}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderTop: '1px solid #f1f5f9', background: '#fafafa', borderBottomLeftRadius: 16, borderBottomRightRadius: 16, flexWrap: 'wrap', gap: 10 }}>
+                                <small style={{ color: '#64748b', fontWeight: 700 }}>
+                                    Hiển thị {(categoryPage - 1) * categoriesPerPage + 1} - {Math.min(categoryPage * categoriesPerPage, categories.length)} trên {categories.length} danh mục (Trang {categoryPage}/{totalCategoryPages})
+                                </small>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <button
+                                        type="button"
+                                        disabled={categoryPage <= 1}
+                                        onClick={() => setCategoryPage((p) => Math.max(p - 1, 1))}
+                                        style={{ background: categoryPage <= 1 ? '#f1f5f9' : '#fff', color: categoryPage <= 1 ? '#94a3b8' : '#0f172a', border: '1px solid #cbd5e1', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 800, cursor: categoryPage <= 1 ? 'not-allowed' : 'pointer' }}
+                                    >
+                                        Trang trước
+                                    </button>
+
+                                    {Array.from({ length: totalCategoryPages }).map((_, pIdx) => {
+                                        const pNum = pIdx + 1;
+                                        return (
+                                            <button
+                                                key={pNum}
+                                                type="button"
+                                                onClick={() => setCategoryPage(pNum)}
+                                                style={{
+                                                    background: categoryPage === pNum ? '#e63917' : '#fff',
+                                                    color: categoryPage === pNum ? '#fff' : '#475569',
+                                                    border: categoryPage === pNum ? 'none' : '1px solid #cbd5e1',
+                                                    borderRadius: 6,
+                                                    width: 28,
+                                                    height: 28,
+                                                    fontWeight: 800,
+                                                    fontSize: 12,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                {pNum}
+                                            </button>
+                                        );
+                                    })}
+
+                                    <button
+                                        type="button"
+                                        disabled={categoryPage >= totalCategoryPages}
+                                        onClick={() => setCategoryPage((p) => Math.min(p + 1, totalCategoryPages))}
+                                        style={{ background: categoryPage >= totalCategoryPages ? '#f1f5f9' : '#fff', color: categoryPage >= totalCategoryPages ? '#94a3b8' : '#0f172a', border: '1px solid #cbd5e1', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 800, cursor: categoryPage >= totalCategoryPages ? 'not-allowed' : 'pointer' }}
+                                    >
+                                        Trang sau
+                                    </button>
+                                </div>
+                            </div>
+                        </>
                     ) : (
                         <div className="admin-empty">
                             <MenuSquare size={38} />

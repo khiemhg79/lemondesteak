@@ -46,20 +46,40 @@ import './pages/admin-menu.css';
 import './pages/admin-tables.css';
 import './styles.css';
 
-// 12-Item Navigation Menu as requested
-const MENU_ITEMS = [
-  { key: 'overview', label: 'Tổng quan', icon: LayoutDashboard },
-  { key: 'orders', label: 'Đơn hàng', icon: ShoppingBag },
-  { key: 'kitchen', label: 'Bếp', icon: CookingPot },
-  { key: 'reservations', label: 'Đặt bàn', icon: CalendarCheck },
-  { key: 'tables', label: 'Bàn & mã QR', icon: QrCode },
-  { key: 'menu', label: 'Thực đơn', icon: MenuSquare },
-  { key: 'promotions', label: 'Khuyến mãi', icon: Gift },
-  { key: 'inventory', label: 'Kho nguyên liệu', icon: Boxes },
-  { key: 'customers', label: 'Khách hàng', icon: Users },
-  { key: 'users', label: 'Nhân viên', icon: UserCheck },
-  { key: 'reports', label: 'Báo cáo', icon: FileSpreadsheet },
-  { key: 'settings', label: 'Cài đặt', icon: Settings }
+// Categorized 12-Item Navigation Menu
+const MENU_SECTIONS = [
+  {
+    title: 'Vận hành & Kinh doanh',
+    items: [
+      { key: 'overview', label: 'Tổng quan', icon: LayoutDashboard },
+      { key: 'orders', label: 'Đơn hàng', icon: ShoppingBag },
+      { key: 'kitchen', label: 'Bếp', icon: CookingPot },
+      { key: 'reservations', label: 'Đặt bàn', icon: CalendarCheck },
+      { key: 'tables', label: 'Bàn & mã QR', icon: QrCode }
+    ]
+  },
+  {
+    title: 'Thực đơn & Kho',
+    items: [
+      { key: 'menu', label: 'Thực đơn', icon: MenuSquare },
+      { key: 'promotions', label: 'Khuyến mãi', icon: Gift },
+      { key: 'inventory', label: 'Kho nguyên liệu', icon: Boxes }
+    ]
+  },
+  {
+    title: 'Khách hàng & Nhân sự',
+    items: [
+      { key: 'customers', label: 'Khách hàng', icon: Users },
+      { key: 'users', label: 'Nhân viên', icon: UserCheck }
+    ]
+  },
+  {
+    title: 'Báo cáo & Hệ thống',
+    items: [
+      { key: 'reports', label: 'Báo cáo tài chính', icon: FileSpreadsheet },
+      { key: 'settings', label: 'Cài đặt hệ thống', icon: Settings }
+    ]
+  }
 ];
 
 function normalizeRole(role) {
@@ -159,35 +179,52 @@ function AdminLogin({ onLogin }) {
 
   return (
     <main className="admin-login-page">
-      <section className="admin-login-card">
-        <div style={{ textAlign: 'center', marginBottom: 14 }}>
-          <img src="/logo.png" alt="LeMonde Steak" style={{ height: 64, borderRadius: 12 }} />
+      <section className="admin-login-card fade-in">
+        <div className="brand-icon-box" style={{ width: 56, height: 56, borderRadius: 18, marginBottom: 14 }}>
+          <UtensilsCrossed size={30} color="#ffffff" />
         </div>
-        <h1>LeMonde Steak</h1>
-        <p>Đăng nhập tài khoản quản trị hệ thống.</p>
+
+        <h1 style={{ margin: 0, color: '#0f172a', fontWeight: 950, fontSize: 24 }}>LeMonde Steak</h1>
+        <p style={{ margin: '6px 0 20px', color: '#64748b', fontSize: 13.5, fontWeight: 500 }}>
+          Hệ Thống Quản Trị Nhà Hàng Cao Cấp
+        </p>
 
         <form onSubmit={submit}>
-          <input
-            value={form.phone}
-            onChange={(event) => setValue('phone', event.target.value)}
-            placeholder="Số điện thoại admin"
-            inputMode="numeric"
-            maxLength={10}
-          />
+          <div style={{ textAlign: 'left', width: '100%' }}>
+            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 850, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Số điện thoại Admin
+            </label>
+            <input
+              value={form.phone}
+              onChange={(event) => setValue('phone', event.target.value)}
+              placeholder="Ví dụ: 0912345678"
+              inputMode="numeric"
+              maxLength={10}
+            />
+          </div>
 
-          <input
-            value={form.password}
-            onChange={(event) => setValue('password', event.target.value)}
-            placeholder="Mật khẩu"
-            type="password"
-          />
+          <div style={{ textAlign: 'left', width: '100%' }}>
+            <label style={{ display: 'block', fontSize: 11.5, fontWeight: 850, color: '#475569', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Mật khẩu Quản trị
+            </label>
+            <input
+              value={form.password}
+              onChange={(event) => setValue('password', event.target.value)}
+              placeholder="Nhập mật khẩu..."
+              type="password"
+            />
+          </div>
 
           {error && <div className="admin-login-error">{error}</div>}
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Đang đăng nhập...' : 'Đăng nhập Quản trị'}
+            {loading ? 'Đang xác thực...' : '🔑 Đăng nhập Quản trị'}
           </button>
         </form>
+
+        <div style={{ marginTop: 20, padding: '10px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, fontSize: 12, color: '#64748b', width: '100%', boxSizing: 'border-box' }}>
+          💡 <strong>Tài khoản Demo:</strong> <code>0912345678</code> / <code>admin123</code>
+        </div>
       </section>
     </main>
   );
@@ -276,26 +313,35 @@ export default function App() {
       {/* Sidebar Navigation */}
       <aside className="admin-sidebar">
         <div className="admin-brand">
-          <UtensilsCrossed size={22} color="#e63917" />
-          <strong>LeMonde Steak</strong>
+          <div className="brand-icon-box">
+            <UtensilsCrossed size={22} color="#ffffff" />
+          </div>
+          <div className="brand-info">
+            <h2>LeMonde Steak</h2>
+            <span>● Hệ thống Online</span>
+          </div>
         </div>
 
-        <nav className="admin-menu">
-          {MENU_ITEMS.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <button
-                key={item.key}
-                type="button"
-                className={activeMenu === item.key ? 'active' : ''}
-                onClick={() => setActiveMenu(item.key)}
-              >
-                <Icon size={17} />
-                {item.label}
-              </button>
-            );
-          })}
+        <nav className="admin-menu" style={{ overflowY: 'auto', flex: 1, paddingRight: 2 }}>
+          {MENU_SECTIONS.map((section, sIdx) => (
+            <div key={sIdx} style={{ marginBottom: 10 }}>
+              <div className="sidebar-section-title">{section.title}</div>
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={activeMenu === item.key ? 'active' : ''}
+                    onClick={() => setActiveMenu(item.key)}
+                  >
+                    <Icon size={17} />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
       </aside>
 
