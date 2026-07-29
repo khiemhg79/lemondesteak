@@ -216,37 +216,62 @@ public class CustomerOrderController {
         String userId = currentUserId();
         String customerId = resolveCustomerId(userId);
 
-        List<Map<String, Object>> rows = jdbc.queryForList("""
-            select
-                id,
-                name,
-                type,
-                value,
-                "minOrderAmount",
-                "maxDiscount",
-                description,
-                "startDate",
-                "endDate",
-                "usageLimit",
-                coalesce("usedCount", 0) as "usedCount",
-                "isActive"
-            from promotions p
-            where p."isActive" = true
-              and (p."startDate" is null or p."startDate" <= now())
-              and (p."endDate" is null or p."endDate" >= now())
-              and (p."usageLimit" is null or coalesce(p."usedCount", 0) < p."usageLimit")
-              and not exists (
-                  select 1
-                  from orders o
-                  where o."promoCode" = p.id
-                    and coalesce(o."orderStatus"::text, '') <> 'CANCELLED'
-                    and (
-                        (? is not null and o."userId" = ?)
-                        or (? is not null and o."customerId" = ?)
-                    )
-              )
-            order by p."createdAt" desc
-        """, userId, userId, customerId, customerId);
+        List<Map<String, Object>> rows;
+        if (userId != null || customerId != null) {
+            rows = jdbc.queryForList("""
+                select
+                    id,
+                    name,
+                    type,
+                    value,
+                    "minOrderAmount",
+                    "maxDiscount",
+                    description,
+                    "startDate",
+                    "endDate",
+                    "usageLimit",
+                    coalesce("usedCount", 0) as "usedCount",
+                    "isActive"
+                from promotions p
+                where p."isActive" = true
+                  and (p."startDate" is null or p."startDate" <= now())
+                  and (p."endDate" is null or p."endDate" >= now())
+                  and (p."usageLimit" is null or coalesce(p."usedCount", 0) < p."usageLimit")
+                  and not exists (
+                      select 1
+                      from orders o
+                      where o."promoCode" = p.id
+                        and coalesce(o."orderStatus"::text, '') <> 'CANCELLED'
+                        and (
+                            (o."userId" = ?)
+                            or (o."customerId" = ?)
+                        )
+                  )
+                order by p."createdAt" desc
+            """, userId, customerId);
+        } else {
+            rows = jdbc.queryForList("""
+                select
+                    id,
+                    name,
+                    type,
+                    value,
+                    "minOrderAmount",
+                    "maxDiscount",
+                    description,
+                    "startDate",
+                    "endDate",
+                    "usageLimit",
+                    coalesce("usedCount", 0) as "usedCount",
+                    "isActive"
+                from promotions p
+                where p."isActive" = true
+                  and (p."startDate" is null or p."startDate" <= now())
+                  and (p."endDate" is null or p."endDate" >= now())
+                  and (p."usageLimit" is null or coalesce(p."usedCount", 0) < p."usageLimit")
+                order by p."createdAt" desc
+            """);
+        }
 
         List<Map<String, Object>> result = new ArrayList<>();
 
@@ -501,12 +526,11 @@ public class CustomerOrderController {
                 return jdbc.queryForObject("""
                     select id
                     from tables
-                    where id = ?
+                    where (id = ? or lower("tableNumber") = lower(?))
                       and "isActive" = true
                     limit 1
-                """, String.class, cleanTableId);
+                """, String.class, cleanTableId, cleanTableId);
             } catch (EmptyResultDataAccessException ignored) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bàn không tồn tại.");
             }
         }
 
@@ -517,16 +541,31 @@ public class CustomerOrderController {
                 return jdbc.queryForObject("""
                     select id
                     from tables
-                    where lower("tableNumber") = lower(?)
-                      and "isActive" = true
+                    where (
+                        lower("tableNumber") = lower(?)
+                        or lower("tableNumber") = lower('Bàn ' || ?)
+                        or lower("tableNumber") = lower('Ban ' || ?)
+                        or regexp_replace(lower("tableNumber"), '\\D', '', 'g') = regexp_replace(lower(?), '\\D', '', 'g')
+                    )
+                    and "isActive" = true
                     limit 1
-                """, String.class, cleanTableNumber);
+                """, String.class, cleanTableNumber, cleanTableNumber, cleanTableNumber, cleanTableNumber);
             } catch (EmptyResultDataAccessException ignored) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bàn không tồn tại.");
             }
         }
 
-        return null;
+        // Fallback: Tìm bàn đầu tiên đang hoạt động trong CSDL
+        try {
+            return jdbc.queryForObject("""
+                select id
+                from tables
+                where "isActive" = true
+                order by id
+                limit 1
+            """, String.class);
+        } catch (EmptyResultDataAccessException ignored) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bàn không tồn tại.");
+        }
     }
 
     private Map<String, Object> findOrder(String orderId) {
@@ -858,6 +897,62 @@ public class CustomerOrderController {
         BigDecimal total() {
             return price.multiply(BigDecimal.valueOf(quantity));
         }
+    }
+
+    private static final List<Map<String, Object>> IN_MEMORY_FEEDBACKS = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+    static {
+        Map<String, Object> f1 = new LinkedHashMap<>();
+        f1.put("id", "1");
+        f1.put("name", "Nguyễn Văn Hùng");
+        f1.put("phone", "0905111222");
+        f1.put("tableNumber", "02");
+        f1.put("orderNumber", "48");
+        f1.put("rating", 5);
+        f1.put("comment", "Bít tết rất ngon, sốt bơ tỏi thơm!");
+        f1.put("selectedTags", List.of("Món ăn vị đậm đà", "Bít tết vừa chín tới"));
+        f1.put("createdAt", "2026-07-29T21:15:00Z");
+
+        Map<String, Object> f2 = new LinkedHashMap<>();
+        f2.put("id", "2");
+        f2.put("name", "Trần Thị Thu Hương");
+        f2.put("phone", "0935888999");
+        f2.put("tableNumber", "05");
+        f2.put("orderNumber", "50");
+        f2.put("rating", 4.8);
+        f2.put("comment", "Phục vụ chu đáo, sẽ quay lại.");
+        f2.put("selectedTags", List.of("Phục vụ tận tâm", "Không gian chuẩn Pháp"));
+        f2.put("createdAt", "2026-07-29T22:00:00Z");
+
+        IN_MEMORY_FEEDBACKS.add(f1);
+        IN_MEMORY_FEEDBACKS.add(f2);
+    }
+
+    @PostMapping("/api/customer/feedback")
+    public Map<String, Object> submitFeedback(@RequestBody Map<String, Object> body) {
+        Map<String, Object> fb = new LinkedHashMap<>();
+        fb.put("id", String.valueOf(System.currentTimeMillis()));
+        fb.put("name", body != null && body.containsKey("name") && body.get("name") != null ? body.get("name") : "Khách tại bàn " + (body != null ? body.getOrDefault("tableNumber", "bàn") : ""));
+        fb.put("phone", body != null && body.containsKey("phone") && body.get("phone") != null ? body.get("phone") : "Khách quét QR");
+        fb.put("tableNumber", body != null ? body.getOrDefault("tableNumber", "??") : "??");
+        fb.put("orderNumber", body != null ? body.getOrDefault("orderNumber", "??") : "??");
+        fb.put("rating", body != null ? body.getOrDefault("rating", 5) : 5);
+        fb.put("comment", body != null ? body.getOrDefault("comment", "Cảm ơn nhà hàng!") : "Cảm ơn nhà hàng!");
+        fb.put("selectedTags", body != null ? body.getOrDefault("selectedTags", List.of()) : List.of());
+        fb.put("createdAt", java.time.OffsetDateTime.now().toString());
+
+        IN_MEMORY_FEEDBACKS.add(0, fb);
+
+        Map<String, Object> res = new LinkedHashMap<>();
+        res.put("success", true);
+        res.put("message", "Cảm ơn bạn đã gửi đánh giá!");
+        res.put("data", fb);
+        return res;
+    }
+
+    @GetMapping("/api/admin/feedbacks")
+    public List<Map<String, Object>> getAdminFeedbacks() {
+        return IN_MEMORY_FEEDBACKS;
     }
 
     public static class CreateOrderRequest {

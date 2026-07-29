@@ -318,20 +318,20 @@ export default function UserManagementPage() {
     }, []);
 
     return (
-        <main className="admin-content">
+        <main className="admin-content bright-theme">
             <section className="admin-page-head">
                 <div>
-                    <h1>Quản lý người dùng</h1>
-                    <p>Xem, thêm, sửa, xóa danh sách người dùng trên hệ thống.</p>
+                    <h1 className="head-title">Quản lý Nhân Viên & Người Dùng</h1>
+                    <p className="head-sub">Xem, thêm, sửa, phân quyền và quản lý tài khoản nhân viên hệ thống.</p>
                 </div>
 
                 <div className="admin-head-actions">
-                    <button className="admin-refresh-btn" type="button" onClick={loadUsers}>
+                    <button className="admin-refresh-btn bright" type="button" onClick={loadUsers}>
                         <RefreshCw size={16} />
                         Làm mới
                     </button>
 
-                    <button className="admin-add-btn" type="button" onClick={openCreate}>
+                    <button className="admin-refresh-btn bright" style={{ background: '#e63917', color: '#fff' }} type="button" onClick={openCreate}>
                         <Plus size={16} />
                         Thêm người dùng
                     </button>
@@ -355,8 +355,9 @@ export default function UserManagementPage() {
             <section className="admin-table-card">
                 {loading ? (
                     <div className="admin-empty">
-                        <UserRound size={38} />
-                        <p>Đang tải danh sách người dùng...</p>
+                        <div className="admin-loading-spinner" />
+                        <p className="admin-loading-text">Đang tải danh sách người dùng...</p>
+                        <small className="admin-loading-sub">Vui lòng chờ trong giây lát</small>
                     </div>
                 ) : users.length ? (
                     <table className="admin-users-table">

@@ -4,9 +4,12 @@ export default function AppHeader({ auth, onLoginClick, onLogout }) {
   return (
     <header className="app-header">
       <div className="brand-mini">
-        <span>
-          <Utensils size={20} />
-        </span>
+        <img
+          src="/logo.png"
+          onError={(e) => { e.target.style.display = 'none'; }}
+          alt="Logo"
+          style={{ height: 32, borderRadius: 6, objectFit: 'contain' }}
+        />
         <div>
           <b>Lemonde Steak</b>
           <small>QR Ordering</small>

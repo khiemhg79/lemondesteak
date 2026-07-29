@@ -37,7 +37,7 @@ function emptyForm() {
 
 function statusLabel(status) {
     const found = STATUS_OPTIONS.find((item) => item.value === status);
-    return found?.label || status || 'N/A';
+    return found?.label || status || 'Bàn trống';
 }
 
 function statusClass(status) {
@@ -342,15 +342,15 @@ export default function TableManagementPage() {
     }, []);
 
     return (
-        <main className="admin-content">
+        <main className="admin-content bright-theme">
             <section className="admin-page-head">
                 <div>
-                    <h1>Quản lý bàn</h1>
-                    <p>Thêm, sửa, xóa bàn và theo dõi trạng thái hoạt động trong ngày.</p>
+                    <h1 className="head-title">Quản lý Bàn & Mã QR</h1>
+                    <p className="head-sub">Thêm, sửa, xóa bàn và xem mã QR đặt món trực tiếp tại các bàn.</p>
                 </div>
 
                 <div className="admin-head-actions">
-                    <button className="admin-refresh-btn" type="button" onClick={loadTables}>
+                    <button className="admin-refresh-btn bright" type="button" onClick={loadTables}>
                         <RefreshCw size={16} />
                         Làm mới
                     </button>

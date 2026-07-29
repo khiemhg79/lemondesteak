@@ -10,6 +10,10 @@ import {
   X
 } from 'lucide-react';
 import './styles.css';
+import WelcomeModal from './components/menu/WelcomeModal.jsx';
+import OrderTracker from './components/cart/OrderTracker.jsx';
+import CrossSellToast from './components/menu/CrossSellToast.jsx';
+import ThankYouModal from './components/cart/ThankYouModal.jsx';
 
 const CURRENT_HOST = window.location.hostname;
 
@@ -1394,6 +1398,16 @@ export default function App() {
   const [historyDetailError, setHistoryDetailError] = useState('');
   const [historyDetailOrder, setHistoryDetailOrder] = useState(null);
 
+  // States cho 4 tính năng UX mới
+  const [combos, setCombos] = useState([]);
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState(
+    () => !sessionStorage.getItem(`welcomeDismissed_${initialTable.tableNumber || 'default'}`)
+  );
+  const [crossSellToastOpen, setCrossSellToastOpen] = useState(false);
+  const [thankYouModalOpen, setThankYouModalOpen] = useState(false);
+  const [paidOrderForThankYou, setPaidOrderForThankYou] = useState(null);
+  const [isRefreshingTracker, setIsRefreshingTracker] = useState(false);
+
   const messageTimerRef = useRef(null);
 
   const showMessage = (text, duration = 1800) => {
@@ -1513,6 +1527,7 @@ export default function App() {
       }
 
       setFoods(mergedFoods);
+      setCombos(comboData);
       setCategories(normalizedCategories);
     } catch (err) {
       clearMessageTimer();
@@ -2045,6 +2060,13 @@ export default function App() {
 
         if (cancelled) return;
 
+        // Phát hiện đơn hàng vừa được thanh toán xong (PAID / COMPLETED)
+        const paidOrder = results.find((o) => o && String(o.orderStatus || o.status || '').toUpperCase() === 'PAID');
+        if (paidOrder) {
+          setPaidOrderForThankYou(paidOrder);
+          setThankYouModalOpen(true);
+        }
+
         const nextOrders = removeFinishedCurrentOrders(results);
 
         setCurrentOrders(nextOrders);
@@ -2074,6 +2096,27 @@ export default function App() {
     auth,
     currentOrders.map((order) => order.id).join('|')
   ]);
+
+  // Timer gợi ý Cross-sell món tráng miệng / đồ uống sau 40s
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (foods.length > 0 && !sessionStorage.getItem('crossSellDismissed')) {
+        setCrossSellToastOpen(true);
+      }
+    }, 40000);
+
+    return () => clearTimeout(timer);
+  }, [foods]);
+
+  const closeWelcomeModal = () => {
+    setWelcomeModalOpen(false);
+    sessionStorage.setItem(`welcomeDismissed_${initialTable.tableNumber || 'default'}`, 'true');
+  };
+
+  const closeCrossSell = () => {
+    setCrossSellToastOpen(false);
+    sessionStorage.setItem('crossSellDismissed', 'true');
+  };
 
 
 
@@ -2321,6 +2364,37 @@ export default function App() {
           onOrder={submitOrder}
           onCloseSuccess={closeOrderSuccess}
         />
+
+        {welcomeModalOpen && !thankYouModalOpen && (
+          <WelcomeModal
+            tableNumber={tableNumber}
+            combos={combos}
+            promotions={promotions}
+            featuredItems={foods.slice(0, 4)}
+            onClose={closeWelcomeModal}
+          />
+        )}
+
+        {crossSellToastOpen && (
+          <CrossSellToast
+            menuItems={foods}
+            categories={categories}
+            onAddToCart={addToCart}
+            onClose={closeCrossSell}
+          />
+        )}
+
+        {thankYouModalOpen && (
+          <ThankYouModal
+            order={paidOrderForThankYou || currentOrder}
+            promotions={promotions}
+            onClose={() => {
+              setThankYouModalOpen(false);
+              setPaidOrderForThankYou(null);
+              saveCurrentOrder(null);
+            }}
+          />
+        )}
       </main>
     </div>
   );

@@ -338,6 +338,24 @@ function PaymentConfirmModal({
                     <option value="BANK_TRANSFER">Chuyển khoản</option>
                 </select>
 
+                {paymentMethod === 'BANK_TRANSFER' && (
+                    <div style={{ textAlign: 'center', background: '#fdf8f5', border: '1px dashed #ea580c', borderRadius: 16, padding: 14, marginTop: 14, marginBottom: 10 }}>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: '#c2410c', marginBottom: 8 }}>
+                            Mã VietQR Tự Động Quét Thanh Toán
+                        </div>
+                        <img
+                            src={`https://img.vietqr.io/image/vietinbank-113366668888-compact.jpg?amount=${Math.round(totalAmount)}&addInfo=${encodeURIComponent(`LMS Don ${order.orderNumber || order.id || ''}`)}&accountName=NHAHANG%20LEMONDE%20STEAK`}
+                            alt="VietQR Staff Modal"
+                            style={{ width: '100%', maxWidth: 220, borderRadius: 12, border: '1px solid #cbd5e1', boxShadow: '0 4px 14px rgba(0,0,0,0.08)' }}
+                        />
+                        <div style={{ fontSize: 12, color: '#475569', marginTop: 8 }}>
+                            STK: <strong style={{ color: '#0f172a' }}>113366668888</strong> (VietinBank)
+                            <br />
+                            Chủ TK: <strong style={{ color: '#0f172a' }}>NHAHANG LEMONDE STEAK</strong>
+                        </div>
+                    </div>
+                )}
+
                 <div className="payment-modal-actions">
                     <button
                         className="payment-cancel-btn"
@@ -374,11 +392,48 @@ export default function StaffPaymentPage() {
     const [paidAmount, setPaidAmount] = useState('');
     const [paymentMethod, setPaymentMethod] = useState('CASH');
     const [paymentError, setPaymentError] = useState('');
-
-    const orders = activeTab === 'PAID' ? paidOrders : pendingOrders;
+    const [groupMode, setGroupMode] = useState(true);
 
     const pendingCount = useMemo(() => pendingOrders.length, [pendingOrders]);
     const paidCount = useMemo(() => paidOrders.length, [paidOrders]);
+
+    // Group pending orders by Table Number when groupMode is active
+    const groupedPendingOrders = useMemo(() => {
+        if (!groupMode) return pendingOrders;
+
+        const tableMap = new Map();
+
+        pendingOrders.forEach((ord) => {
+            const rawTable = String(ord.tableNumber || ord.tableName || 'Khác').trim();
+            const key = rawTable.toUpperCase();
+
+            if (!tableMap.has(key)) {
+                tableMap.set(key, {
+                    ...ord,
+                    isMerged: false,
+                    orderIds: [ord.id],
+                    orderNumbers: [ord.orderNumber || ord.id],
+                    items: [...(ord.items || [])],
+                    subTotal: Number(ord.subTotal || ord.totalAmount || 0),
+                    discountAmount: Number(ord.discountAmount || 0),
+                    totalAmount: Number(ord.totalAmount || 0)
+                });
+            } else {
+                const existing = tableMap.get(key);
+                existing.isMerged = true;
+                existing.orderIds.push(ord.id);
+                existing.orderNumbers.push(ord.orderNumber || ord.id);
+                existing.items = [...existing.items, ...(ord.items || [])];
+                existing.subTotal += Number(ord.subTotal || ord.totalAmount || 0);
+                existing.discountAmount += Number(ord.discountAmount || 0);
+                existing.totalAmount += Number(ord.totalAmount || 0);
+            }
+        });
+
+        return Array.from(tableMap.values());
+    }, [pendingOrders, groupMode]);
+
+    const orders = activeTab === 'PAID' ? paidOrders : groupedPendingOrders;
 
     const loadPayments = async (silent = false) => {
         if (!silent) {
@@ -410,6 +465,11 @@ export default function StaffPaymentPage() {
         setPaymentError('');
         setPaymentMethod('CASH');
         setPaidAmount(String(Math.round(Number(order.totalAmount || 0))));
+
+        if (order.isMerged) {
+            setConfirmOrder(order);
+            return;
+        }
 
         try {
             const invoice = await api(`/api/staff/payments/${order.id}/invoice`);
@@ -449,15 +509,28 @@ export default function StaffPaymentPage() {
         setMessage('');
 
         try {
-            await api(`/api/staff/orders/${confirmOrder.id}/confirm-payment`, {
-                method: 'POST',
-                body: {
-                    paidAmount: receivedAmount,
-                    paymentMethod
+            if (confirmOrder.orderIds && confirmOrder.orderIds.length > 1) {
+                // Confirm payment for all merged sub-orders of this table
+                for (const id of confirmOrder.orderIds) {
+                    await api(`/api/staff/orders/${id}/confirm-payment`, {
+                        method: 'POST',
+                        body: {
+                            paidAmount: Math.round(receivedAmount / confirmOrder.orderIds.length),
+                            paymentMethod
+                        }
+                    });
                 }
-            });
+            } else {
+                await api(`/api/staff/orders/${confirmOrder.id}/confirm-payment`, {
+                    method: 'POST',
+                    body: {
+                        paidAmount: receivedAmount,
+                        paymentMethod
+                    }
+                });
+            }
 
-            setMessage('Xác nhận thanh toán thành công.');
+            setMessage('Xác nhận thanh toán toàn bộ bàn thành công.');
             setConfirmOrder(null);
             setPaidAmount('');
             setPaymentMethod('CASH');
@@ -523,22 +596,43 @@ export default function StaffPaymentPage() {
                 </button>
             </section>
 
-            <section className="payment-tabs">
-                <button
-                    type="button"
-                    className={activeTab === 'PENDING' ? 'active' : ''}
-                    onClick={() => setActiveTab('PENDING')}
-                >
-                    Chờ thanh toán ({pendingCount})
-                </button>
+            <section className="payment-tabs" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                        type="button"
+                        className={activeTab === 'PENDING' ? 'active' : ''}
+                        onClick={() => setActiveTab('PENDING')}
+                    >
+                        Chờ thanh toán ({pendingCount})
+                    </button>
 
-                <button
-                    type="button"
-                    className={activeTab === 'PAID' ? 'active' : ''}
-                    onClick={() => setActiveTab('PAID')}
-                >
-                    Đã thanh toán ({paidCount})
-                </button>
+                    <button
+                        type="button"
+                        className={activeTab === 'PAID' ? 'active' : ''}
+                        onClick={() => setActiveTab('PAID')}
+                    >
+                        Đã thanh toán ({paidCount})
+                    </button>
+                </div>
+
+                {activeTab === 'PENDING' && (
+                    <button
+                        type="button"
+                        onClick={() => setGroupMode(!groupMode)}
+                        style={{
+                            background: groupMode ? '#fff5f2' : '#f1f5f9',
+                            color: groupMode ? '#e63917' : '#475569',
+                            border: groupMode ? '1px solid #feccae' : '1px solid #cbd5e1',
+                            padding: '6px 14px',
+                            borderRadius: 999,
+                            fontWeight: 850,
+                            fontSize: 12.5,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        {groupMode ? '🔀 Ghép đơn cùng bàn (Đang bật)' : '📋 Tách riêng từng đơn'}
+                    </button>
+                )}
             </section>
 
             {message && <div className="staff-message">{message}</div>}
@@ -554,11 +648,15 @@ export default function StaffPaymentPage() {
                             <div className="payment-card-head">
                                 <div>
                                     <h2>{tableLabel(order)}</h2>
-                                    <p>Đơn hàng #{order.orderNumber || order.id}</p>
+                                    <p>
+                                        {order.isMerged
+                                            ? `Ghép ${order.orderNumbers.length} đơn: #${order.orderNumbers.join(', #')}`
+                                            : `Đơn hàng #${order.orderNumber || order.id}`}
+                                    </p>
                                     <span>{dateText(order.updatedAt || order.createdAt)}</span>
                                 </div>
 
-                                <strong>{money(order.totalAmount)}</strong>
+                                <strong style={{ color: '#e63917', fontSize: 18 }}>{money(order.totalAmount)}</strong>
                             </div>
 
                             <div className="payment-items">

@@ -298,6 +298,22 @@ function PaymentModal({ table, onClose, onPaid }) {
                             </select>
 
                             <small>Đang chọn: {paymentMethodLabel(paymentMethod)}</small>
+
+                            {paymentMethod === 'BANK_TRANSFER' && (
+                                <div style={{ textAlign: 'center', background: '#fdf8f5', border: '1px dashed #ea580c', borderRadius: 16, padding: 12, marginTop: 12 }}>
+                                    <div style={{ fontSize: 12, fontWeight: 800, color: '#c2410c', marginBottom: 8 }}>
+                                        Mã VietQR Tự Động Cho Khách Quét
+                                    </div>
+                                    <img
+                                        src={`https://img.vietqr.io/image/vietinbank-113366668888-compact.jpg?amount=${Math.round(totalAmount)}&addInfo=${encodeURIComponent(`LMS Ban ${table.tableNumber} Don ${order.orderNumber}`)}&accountName=NHAHANG%20LEMONDE%20STEAK`}
+                                        alt="VietQR Staff"
+                                        style={{ width: '100%', maxWidth: 220, borderRadius: 10, border: '1px solid #e5e7eb', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                    />
+                                    <div style={{ fontSize: 11, color: '#4b5563', marginTop: 6 }}>
+                                        STK: <strong>113366668888</strong> (VietinBank - NHAHANG LEMONDE STEAK)
+                                    </div>
+                                </div>
+                            )}
                         </section>
 
                         {error && <div className="payment-error">{error}</div>}

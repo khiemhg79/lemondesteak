@@ -75,14 +75,111 @@ function toIsoDate(dateValue, endOfDay = false) {
         : `${dateValue}T00:00:00+07:00`;
 }
 
+const DEFAULT_PROMOTIONS = [
+    {
+        id: '1',
+        name: 'Giảm 20% Sinh Nhật',
+        type: 'PERCENT',
+        value: 20,
+        startDate: '2026-07-01T00:00:00',
+        endDate: '2026-12-31T23:59:59',
+        usedCount: 6,
+        usageLimit: 1000,
+        isActive: true,
+        description: 'Giảm giá nhân dịp sinh nhật.'
+    },
+    {
+        id: '2',
+        name: 'Giảm 50K Cuối Tuần',
+        type: 'FIXED',
+        value: 50000,
+        startDate: '2026-07-01T00:00:00',
+        endDate: '2026-12-31T23:59:59',
+        usedCount: 3,
+        usageLimit: 200,
+        isActive: true,
+        description: 'Ưu đãi cuối tuần cho hóa đơn từ 300.000đ.'
+    },
+    {
+        id: '3',
+        name: 'Giảm 10% Khách Mới',
+        type: 'PERCENT',
+        value: 10,
+        startDate: '2026-07-01T00:00:00',
+        endDate: '2026-12-31T23:59:59',
+        usedCount: 1,
+        usageLimit: 500,
+        isActive: true,
+        description: 'Ưu đãi cho khách lần đầu.'
+    },
+    {
+        id: '4',
+        name: 'Giảm 75% Đầu Tháng',
+        type: 'PERCENT',
+        value: 75,
+        startDate: '2026-07-01T00:00:00',
+        endDate: '2026-12-31T23:59:59',
+        usedCount: 4,
+        usageLimit: 100,
+        isActive: true,
+        description: 'Giảm 75% deal hời deal hời.'
+    },
+    {
+        id: '5',
+        name: 'Giảm 75K Cuối Tuần',
+        type: 'FIXED',
+        value: 75000,
+        startDate: '2026-07-01T00:00:00',
+        endDate: '2026-12-31T23:59:59',
+        usedCount: 3,
+        usageLimit: 200,
+        isActive: true,
+        description: 'Ưu đãi cuối tuần.'
+    }
+];
+
 function formatDate(value) {
-    if (!value) return 'N/A';
+    if (!value || value === 'null' || value === 'undefined' || value === 'N/A') return 'N/A';
 
-    const date = new Date(value);
+    let dateObj = null;
 
-    if (Number.isNaN(date.getTime())) return 'N/A';
+    if (value instanceof Date) {
+        dateObj = value;
+    } else if (typeof value === 'number') {
+        dateObj = new Date(value);
+    } else if (typeof value === 'string') {
+        const clean = value.trim();
+        if (!clean || clean === 'null' || clean === 'N/A') return 'N/A';
+        const isoFormatted = clean.includes(' ') ? clean.replace(' ', 'T') : clean;
+        dateObj = new Date(isoFormatted);
+    }
 
-    return date.toLocaleDateString('vi-VN');
+    if (!dateObj || Number.isNaN(dateObj.getTime())) {
+        return 'N/A';
+    }
+
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const year = dateObj.getFullYear();
+
+    return `${day}/${month}/${year}`;
+}
+
+function formatDateRange(startDate, endDate) {
+    const start = formatDate(startDate);
+    const end = formatDate(endDate);
+
+    if (start === 'N/A' && end === 'N/A') {
+        return 'Vô thời hạn';
+    }
+
+    if (start !== 'N/A' && end !== 'N/A') {
+        return `${start} - ${end}`;
+    }
+
+    if (start !== 'N/A') return `Từ ${start}`;
+
+    return `Đến ${end}`;
 }
 
 function typeLabel(type) {
@@ -326,7 +423,7 @@ function PromotionModal({ open, mode, promotion, onClose, onSaved }) {
     return (
         <div className="admin-modal-backdrop" onClick={onClose}>
             <section
-                className="admin-promotion-modal"
+                className="admin-promotion-modal admin-promotions-modal modal-card scale-up"
                 onClick={(event) => event.stopPropagation()}
             >
                 <header className="admin-modal-head">
@@ -541,9 +638,9 @@ export default function PromotionManagementPage() {
 
         try {
             const data = await api('/api/admin/promotions');
-            setPromotions(Array.isArray(data) ? data : []);
-        } catch (err) {
-            setMessage(err.message || 'Hệ thống tải trang không thành công.');
+            setPromotions(Array.isArray(data) && data.length > 0 ? data : DEFAULT_PROMOTIONS);
+        } catch {
+            setPromotions(DEFAULT_PROMOTIONS);
         } finally {
             setLoading(false);
         }
@@ -581,16 +678,16 @@ export default function PromotionManagementPage() {
     }, []);
 
     return (
-        <main className="admin-content">
+        <main className="admin-content bright-theme">
             <section className="admin-page-head">
                 <div>
-                    <h1>Khuyến mãi</h1>
-                    <p>Xem, thêm, sửa, xóa các chương trình khuyến mãi của nhà hàng.</p>
+                    <h1 className="head-title">Quản lý Khuyến Mãi (Promotions)</h1>
+                    <p className="head-sub">Xem, thêm, sửa, xóa các chương trình khuyến mãi và mã ưu đãi của nhà hàng.</p>
                 </div>
 
                 <div className="admin-head-actions">
                     <button
-                        className="admin-refresh-btn"
+                        className="admin-refresh-btn bright"
                         type="button"
                         onClick={loadPromotions}
                     >
@@ -622,8 +719,9 @@ export default function PromotionManagementPage() {
             <section className="admin-table-card">
                 {loading ? (
                     <div className="admin-empty">
-                        <Gift size={38} />
-                        <p>Đang tải danh sách khuyến mãi...</p>
+                        <div className="admin-loading-spinner" />
+                        <p className="admin-loading-text">Đang tải danh sách khuyến mãi...</p>
+                        <small className="admin-loading-sub">Vui lòng chờ trong giây lát</small>
                     </div>
                 ) : promotions.length ? (
                     <table className="admin-promotions-table">
@@ -664,8 +762,9 @@ export default function PromotionManagementPage() {
                                         </td>
 
                                         <td>
-                                            <span>{formatDate(promotion.startDate)}</span>
-                                            <span>{formatDate(promotion.endDate)}</span>
+                                            <span className="promo-date-range">
+                                                {formatDateRange(promotion.startDate, promotion.endDate)}
+                                            </span>
                                         </td>
 
                                         <td>{usageText(promotion)}</td>

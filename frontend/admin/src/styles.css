@@ -1,221 +1,831 @@
 :root {
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-        "Segoe UI", sans-serif;
-    color: #f8fafc;
-    background: #020617;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #0f172a;
+  background: #f8fafc;
 }
 
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
 body {
-    margin: 0;
-    min-height: 100vh;
-    background: #020617;
+  margin: 0;
+  min-height: 100vh;
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 button,
 input,
-select {
-    font: inherit;
+select,
+textarea {
+  font: inherit;
 }
 
 button,
 select {
-    cursor: pointer;
+  cursor: pointer;
 }
 
+/* App Main Layout */
 .admin-app {
-    min-height: 100vh;
-    display: grid;
-    grid-template-columns: 245px 1fr;
-    background: #020617;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  background: #f8fafc;
 }
 
+/* Sidebar Styling */
 .admin-sidebar {
-    background: #030712;
-    border-right: 1px solid #111827;
-    padding: 22px 14px;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  padding: 24px 16px;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.02);
 }
 
 .admin-brand {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    color: #e5e7eb;
-    font-weight: 950;
-    margin-bottom: 24px;
-    padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #e63917;
+  font-weight: 950;
+  font-size: 18px;
+  margin-bottom: 28px;
+  padding: 0 8px;
 }
 
 .admin-menu {
-    display: grid;
-    gap: 8px;
+  display: grid;
+  gap: 6px;
 }
 
 .admin-menu button {
-    width: 100%;
-    min-height: 42px;
-    border: 0;
-    border-radius: 12px;
-    background: transparent;
-    color: #a8b3c7;
-    padding: 0 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 850;
-    text-align: left;
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #64748b;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 800;
+  font-size: 13px;
+  text-align: left;
+  transition: all 0.2s ease;
 }
 
 .admin-menu button.active {
-    background: #17213a;
-    color: #fff;
+  background: #fff5f2;
+  color: #e63917;
+  font-weight: 950;
+  border: 1px solid #feccae;
 }
 
-.admin-menu button:hover {
-    background: #111827;
+.admin-menu button:hover:not(.active) {
+  background: #f1f5f9;
+  color: #0f172a;
 }
 
+/* Main Section */
 .admin-main {
-    min-width: 0;
-    background: #020617;
+  min-width: 0;
+  background: #f8fafc;
 }
 
+/* Topbar Styling */
 .admin-topbar {
-    height: 58px;
-    border-bottom: 1px solid #111827;
-    background: #050914;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 14px;
-    padding: 0 28px;
-    color: #dbeafe;
-    font-size: 14px;
+  height: 64px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 0 32px;
+  color: #0f172a;
+  font-size: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
 }
 
 .admin-topbar button {
-    height: 36px;
-    border: 0;
-    border-radius: 10px;
-    background: #17213a;
-    color: #dbeafe;
-    padding: 0 12px;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    font-weight: 900;
+  height: 38px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 13px;
+  transition: all 0.2s ease;
 }
 
+.admin-topbar button:hover {
+  background: #f8fafc;
+}
+
+/* Admin Login Page */
 .admin-login-page {
-    min-height: 100vh;
-    display: grid;
-    place-items: center;
-    padding: 20px;
-    background: radial-gradient(circle at top, #172554, #020617 55%);
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%);
 }
 
 .admin-login-card {
-    width: min(400px, 100%);
-    background: #050914;
-    border: 1px solid #1b2946;
-    border-radius: 22px;
-    padding: 24px;
-    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.4);
+  width: min(420px, 100%);
+  background: #ffffff;
+  border: 1px solid #fed7aa;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 24px 80px rgba(230, 57, 23, 0.12);
 }
 
 .admin-login-card h1 {
-    margin: 0;
-    color: #f8fafc;
-    letter-spacing: -0.04em;
+  margin: 0;
+  color: #0f172a;
+  font-weight: 950;
+  font-size: 24px;
+  letter-spacing: -0.02em;
 }
 
 .admin-login-card p {
-    margin: 7px 0 18px;
-    color: #8f9bb3;
+  margin: 8px 0 20px;
+  color: #64748b;
+  font-size: 13px;
 }
 
-.admin-login-card form {
-    display: grid;
-    gap: 12px;
+/* ==========================================================================
+   GLOBAL ADMIN MODAL BACKDROP & POPUP OVERLAY FIX (ALL MODALS FIXED AT ONCE)
+   ========================================================================== */
+.admin-modal-backdrop,
+.modal-backdrop {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(15, 23, 42, 0.7) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 999999 !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+}
+
+/* All Admin Modal Box Cards */
+.admin-item-modal,
+.admin-combo-modal,
+.admin-category-modal,
+.admin-delete-modal,
+.admin-user-modal,
+.admin-table-modal,
+.admin-promotion-modal,
+.admin-promotions-modal,
+.admin-menu-modal,
+.modal-card,
+.item-detail-modal {
+  margin: auto !important;
+  position: relative !important;
+  z-index: 1000000 !important;
+  width: min(540px, 94vw) !important;
+  max-height: 85vh !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-radius: 24px !important;
+  padding: 24px 28px 40px !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid #e2e8f0 !important;
+  overflow-y: auto !important;
+  animation: scaleUpModal 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+@keyframes scaleUpModal {
+  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Modal Headers */
+.admin-modal-head,
+.item-modal-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 20px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.admin-modal-head h2,
+.admin-modal-head h3 {
+  margin: 0 !important;
+  font-size: 20px !important;
+  font-weight: 950 !important;
+  color: #0f172a !important;
+}
+
+.admin-modal-head button {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 10px !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #f8fafc !important;
+  color: #64748b !important;
+  display: grid !important;
+  place-items: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.admin-modal-head button:hover {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+  border-color: #fecaca !important;
+}
+
+/* Admin Form Layout Inside Modals */
+.admin-item-form,
+.admin-combo-form,
+.admin-category-form,
+.admin-user-form,
+.admin-table-form,
+.admin-promotions-form,
+.admin-menu-form {
+  display: grid !important;
+  gap: 16px !important;
+  text-align: left !important;
+}
+
+.admin-item-form label,
+.admin-combo-form label,
+.admin-category-form label,
+.admin-user-form label,
+.admin-table-form label,
+.admin-promotions-form label,
+.admin-menu-form label {
+  display: grid !important;
+  gap: 6px !important;
+}
+
+.admin-item-form label span,
+.admin-combo-form label span,
+.admin-category-form label span,
+.admin-user-form label span,
+.admin-table-form label span,
+.admin-promotions-form label span,
+.admin-menu-form label span {
+  color: #0f172a !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  text-align: left !important;
+}
+
+.admin-item-form input,
+.admin-item-form select,
+.admin-item-form textarea,
+.admin-combo-form input,
+.admin-combo-form select,
+.admin-combo-form textarea,
+.admin-category-form input,
+.admin-user-form input,
+.admin-user-form select,
+.admin-table-form input,
+.admin-table-form select,
+.admin-promotions-form input,
+.admin-promotions-form select {
+  width: 100% !important;
+  height: 44px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  padding: 0 14px !important;
+  outline: none !important;
+  font-size: 14px !important;
+  box-sizing: border-box !important;
+}
+
+.admin-item-form textarea,
+.admin-combo-form textarea {
+  height: 80px !important;
+  padding: 10px 14px !important;
+  resize: vertical !important;
+}
+
+.admin-item-form input:focus,
+.admin-item-form select:focus,
+.admin-item-form textarea:focus,
+.admin-combo-form input:focus,
+.admin-combo-form select:focus,
+.admin-combo-form textarea:focus,
+.admin-category-form input:focus,
+.admin-user-form input:focus,
+.admin-user-form select:focus,
+.admin-table-form input:focus,
+.admin-table-form select:focus,
+.admin-promotions-form input:focus,
+.admin-promotions-form select:focus {
+  border-color: #e63917 !important;
+  box-shadow: 0 0 0 3px rgba(230, 57, 23, 0.15) !important;
+}
+
+/* Image Picker Inside Modals */
+.item-image-picker {
+  background: #f8fafc !important;
+  border: 1px dashed #cbd5e1 !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.custom-file-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  padding: 8px 16px !important;
+  border-radius: 12px !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.2s ease !important;
+  margin-top: 6px !important;
+}
+
+.custom-file-btn:hover {
+  background: #eff6ff !important;
+  border-color: #bfdbfe !important;
+  color: #2563eb !important;
+}
+
+.item-image-preview {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.item-image-preview img {
+  width: 120px !important;
+  height: 120px !important;
+  max-width: 120px !important;
+  max-height: 120px !important;
+  object-fit: cover !important;
+  border-radius: 16px !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.item-image-preview button {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+  border: 1px solid #fecaca !important;
+  padding: 6px 14px !important;
+  border-radius: 10px !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+}
+
+.item-image-empty {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: #64748b !important;
+  padding: 14px !important;
+}
+
+/* Header Action Add & Refresh Buttons (.admin-add-btn, .admin-refresh-btn) */
+.admin-add-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 10px 20px !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #e63917 0%, #ff6624 100%) !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  font-size: 14px !important;
+  border: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 6px 18px rgba(230, 57, 23, 0.28) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.admin-add-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 26px rgba(230, 57, 23, 0.38) !important;
+  background: linear-gradient(135deg, #d32f12 0%, #f55513 100%) !important;
+}
+
+.admin-refresh-btn,
+.admin-refresh-btn.bright {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 10px 18px !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  font-weight: 800 !important;
+  font-size: 13.5px !important;
+  border: 1px solid #cbd5e1 !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.admin-refresh-btn:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Modal Form Grid & Labels (.admin-promotion-form, .promotion-form-grid) */
+.admin-promotion-form,
+.admin-promotions-form,
+.admin-item-form,
+.admin-combo-form,
+.admin-category-form,
+.admin-user-form,
+.admin-table-form {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  margin-top: 14px !important;
+  text-align: left !important;
+}
+
+.admin-promotion-form label,
+.admin-promotions-form label,
+.admin-item-form label,
+.admin-combo-form label,
+.admin-category-form label,
+.admin-user-form label,
+.admin-table-form label {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  color: #334155 !important;
+  text-align: left !important;
+}
+
+.admin-promotion-form label span,
+.admin-promotions-form label span,
+.admin-item-form label span,
+.admin-combo-form label span,
+.admin-user-form label span,
+.admin-table-form label span {
+  display: block !important;
+  color: #334155 !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+.promotion-form-grid,
+.admin-form-grid,
+.form-grid-2,
+.form-row-2 {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 14px !important;
+  width: 100% !important;
+}
+
+.admin-promotion-form input[type="text"],
+.admin-promotion-form input[type="number"],
+.admin-promotion-form input[type="date"],
+.admin-promotion-form input:not([type="checkbox"]),
+.admin-promotion-form select,
+.admin-promotion-form textarea,
+.admin-promotions-form input:not([type="checkbox"]),
+.admin-promotions-form select,
+.admin-promotions-form textarea,
+.admin-item-form input:not([type="file"]),
+.admin-item-form select,
+.admin-item-form textarea,
+.admin-user-form input,
+.admin-user-form select,
+.admin-table-form input,
+.admin-table-form select {
+  width: 100% !important;
+  height: 44px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 12px !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  padding: 0 14px !important;
+  outline: none !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+
+.admin-promotion-form textarea,
+.admin-promotions-form textarea,
+.admin-item-form textarea {
+  height: 72px !important;
+  padding: 10px 14px !important;
+  resize: vertical !important;
+}
+
+.admin-promotion-form input:focus,
+.admin-promotion-form select:focus,
+.admin-promotion-form textarea:focus,
+.admin-promotions-form input:focus,
+.admin-promotions-form select:focus,
+.admin-promotions-form textarea:focus,
+.admin-item-form input:focus,
+.admin-item-form select:focus,
+.admin-item-form textarea:focus {
+  border-color: #e63917 !important;
+  box-shadow: 0 0 0 3px rgba(230, 57, 23, 0.15) !important;
+}
+
+.admin-check-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+}
+
+.admin-check-row input[type="checkbox"] {
+  width: 18px !important;
+  height: 18px !important;
+  accent-color: #e63917 !important;
+  cursor: pointer !important;
+}
+
+/* Modal Submit Button */
+.admin-submit-btn,
+.admin-item-form button[type="submit"],
+.admin-combo-form button[type="submit"],
+.admin-category-form button[type="submit"],
+.admin-user-form button[type="submit"],
+.admin-table-form button[type="submit"],
+.admin-promotion-form button[type="submit"],
+.admin-promotions-form button[type="submit"] {
+  width: 100% !important;
+  padding: 12px 18px !important;
+  border-radius: 14px !important;
+  border: none !important;
+  background: linear-gradient(135deg, #e63917 0%, #ff6624 100%) !important;
+  color: #ffffff !important;
+  font-size: 14px !important;
+  font-weight: 950 !important;
+  cursor: pointer !important;
+  box-shadow: 0 8px 20px rgba(230, 57, 23, 0.25) !important;
+  transition: all 0.2s ease !important;
+  margin-top: 10px !important;
+}
+
+.admin-submit-btn:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 10px 24px rgba(230, 57, 23, 0.35) !important;
+}
+
+/* Table Action Buttons Fix (.admin-row-actions - Soft rounded, modern icons) */
+.admin-row-actions,
+.admin-actions,
+.table-card-actions,
+.admin-menu-actions,
+.admin-user-actions,
+.admin-promo-actions {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.admin-row-actions button,
+.admin-actions button,
+.table-card-actions button,
+.admin-menu-actions button,
+.admin-user-actions button,
+.admin-promo-actions button {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+  color: #475569 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Edit Button (First button) */
+.admin-row-actions button:first-child,
+.admin-actions button:first-child,
+.table-card-actions button:first-child,
+.admin-menu-actions button:first-child,
+.admin-user-actions button:first-child,
+.admin-promo-actions button:first-child {
+  background: #eff6ff !important;
+  color: #2563eb !important;
+  border-color: #bfdbfe !important;
+}
+
+.admin-row-actions button:first-child:hover,
+.admin-actions button:first-child:hover,
+.table-card-actions button:first-child:hover,
+.admin-menu-actions button:first-child:hover,
+.admin-user-actions button:first-child:hover,
+.admin-promo-actions button:first-child:hover {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  transform: translateY(-2px) scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+}
+
+/* Delete Button (Second button) */
+.admin-row-actions button:nth-child(2),
+.admin-actions button:nth-child(2),
+.table-card-actions button:nth-child(2),
+.admin-menu-actions button:nth-child(2),
+.admin-user-actions button:nth-child(2),
+.admin-promo-actions button:nth-child(2) {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+  border-color: #fecaca !important;
+}
+
+.admin-row-actions button:nth-child(2):hover,
+.table-card-actions button:nth-child(2):hover,
+.admin-menu-actions button:nth-child(2):hover,
+.admin-user-actions button:nth-child(2):hover,
+.admin-promo-actions button:nth-child(2):hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border-color: #dc2626 !important;
+  transform: translateY(-2px) scale(1.05) !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3) !important;
+}
+
+/* ==========================================================================
+   PREMIUM MODERN LOADING & SKELETON STATES (ALL ADMIN PAGES)
+   ========================================================================== */
+.admin-empty,
+.admin-loading-box {
+  min-height: 240px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  text-align: center !important;
+  padding: 48px 24px !important;
+  background: #ffffff !important;
+  border-radius: 20px !important;
+  border: 1px dashed #cbd5e1 !important;
+  color: #64748b !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02) !important;
+  margin: 16px 0 !important;
+}
+
+.admin-loading-spinner {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  border: 4px solid #fee2e2 !important;
+  border-top-color: #e63917 !important;
+  border-radius: 50% !important;
+  animation: adminSpin 0.75s linear infinite !important;
+  box-shadow: 0 4px 14px rgba(230, 57, 23, 0.2) !important;
+}
+
+@keyframes adminSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.admin-loading-text {
+  font-size: 15px !important;
+  font-weight: 850 !important;
+  color: #0f172a !important;
+  margin: 0 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.admin-loading-sub {
+  font-size: 12px !important;
+  color: #94a3b8 !important;
+  margin: 0 !important;
 }
 
 .admin-login-card input {
-    height: 44px;
-    border: 1px solid #1b2946;
-    border-radius: 12px;
-    background: #0d1528;
-    color: #f8fafc;
-    padding: 0 12px;
-    outline: none;
+  height: 46px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 0 14px;
+  outline: none;
+  font-size: 14px;
 }
 
 .admin-login-card input:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+  border-color: #e63917;
+  box-shadow: 0 0 0 3px rgba(230, 57, 23, 0.15);
 }
 
 .admin-login-card button {
-    height: 44px;
-    border: 0;
-    border-radius: 12px;
-    background: #2563eb;
-    color: #fff;
-    font-weight: 950;
+  height: 46px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #e63917 0%, #ff6624 100%);
+  color: #ffffff;
+  font-weight: 950;
+  font-size: 15px;
+  box-shadow: 0 8px 24px rgba(230, 57, 23, 0.3);
+  cursor: pointer;
 }
 
 .admin-login-error {
-    border-left: 5px solid #9ca3af;
-    background: #2a1420;
-    color: #fb7185;
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 13px;
-    font-weight: 800;
+  border-left: 5px solid #dc2626;
+  background: #fef2f2;
+  color: #991b1b;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 800;
 }
 
-.admin-placeholder {
-    min-height: 360px;
-    display: grid;
-    place-items: center;
-    text-align: center;
-    color: #8f9bb3;
-    border: 1px dashed #1b2946;
-    border-radius: 18px;
-    background: #050914;
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.admin-placeholder h1 {
-    margin: 0;
-    color: #f8fafc;
+.scale-up {
+  animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.admin-placeholder p {
-    margin: 6px 0 0;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 @media (max-width: 900px) {
-    .admin-app {
-        grid-template-columns: 1fr;
-    }
+  .admin-app {
+    grid-template-columns: 1fr;
+  }
 
-    .admin-sidebar {
-        position: sticky;
-        top: 0;
-        z-index: 20;
-        border-right: 0;
-        border-bottom: 1px solid #111827;
-    }
+  .admin-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-right: 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
 
-    .admin-menu {
-        display: flex;
-        overflow-x: auto;
-    }
+  .admin-menu {
+    display: flex;
+    overflow-x: auto;
+  }
 
-    .admin-menu button {
-        width: auto;
-        white-space: nowrap;
-    }
+  .admin-menu button {
+    width: auto;
+    white-space: nowrap;
+  }
 }

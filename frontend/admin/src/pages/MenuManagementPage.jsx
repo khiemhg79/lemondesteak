@@ -237,15 +237,19 @@ function ImagePicker({ image, onImageChange, onError }) {
             ) : (
                 <div className="item-image-empty">
                     <ImagePlus size={26} />
-                    <span>Chọn ảnh</span>
+                    <span>Chọn ảnh món</span>
                 </div>
             )}
 
-            <input
-                type="file"
-                accept="image/png,image/jpeg,image/jpg"
-                onChange={(event) => chooseImage(event.target.files?.[0])}
-            />
+            <label className="custom-file-btn">
+                <span>📁 Tải ảnh mới từ máy tính</span>
+                <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg"
+                    onChange={(event) => chooseImage(event.target.files?.[0])}
+                    style={{ display: 'none' }}
+                />
+            </label>
         </div>
     );
 }
@@ -1099,20 +1103,20 @@ export default function MenuManagementPage() {
                 : 'Thêm danh mục';
 
     return (
-        <main className="admin-content">
+        <main className="admin-content bright-theme">
             <section className="admin-page-head">
                 <div>
-                    <h1>Quản lý Menu</h1>
-                    <p>Xem, thêm, sửa, xóa món ăn, combo và danh mục của nhà hàng.</p>
+                    <h1 className="head-title">Quản lý Thực Đơn (Menu)</h1>
+                    <p className="head-sub">Xem, thêm, sửa, xóa món ăn, combo và danh mục của nhà hàng.</p>
                 </div>
 
                 <div className="admin-head-actions">
-                    <button className="admin-refresh-btn" type="button" onClick={loadData}>
+                    <button className="admin-refresh-btn bright" type="button" onClick={loadData}>
                         <RefreshCw size={16} />
                         Làm mới
                     </button>
 
-                    <button className="admin-add-btn" type="button" onClick={openCreate}>
+                    <button className="admin-refresh-btn bright" style={{ background: '#e63917', color: '#fff' }} type="button" onClick={openCreate}>
                         <Plus size={16} />
                         {activeCreateLabel}
                     </button>
@@ -1193,8 +1197,9 @@ export default function MenuManagementPage() {
                 <section className="admin-table-card">
                     {loading ? (
                         <div className="admin-empty">
-                            <MenuSquare size={38} />
-                            <p>Đang tải danh sách món ăn...</p>
+                            <div className="admin-loading-spinner" />
+                            <p className="admin-loading-text">Đang đồng bộ danh sách món ăn từ CSDL...</p>
+                            <small className="admin-loading-sub">Vui lòng chờ trong giây lát</small>
                         </div>
                     ) : items.length ? (
                         <table className="admin-menu-table">

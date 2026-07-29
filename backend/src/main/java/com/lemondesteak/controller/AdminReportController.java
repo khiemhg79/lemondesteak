@@ -112,7 +112,9 @@ public class AdminReportController {
                 .createNativeQuery("""
                         select
                             coalesce(i.name, c.name, 'Không xác định') as item_name,
-                            coalesce(sum(od.quantity), 0) as total_quantity
+                            coalesce(sum(od.quantity), 0) as total_quantity,
+                            coalesce(max(i.category), 'Combo') as category_name,
+                            coalesce(sum(od.quantity * od.price), 0) as total_revenue
                         from orderdetails od
                         join orders o on o.id = od."orderId"
                         left join items i on i.id = od."itemId"
@@ -127,7 +129,9 @@ public class AdminReportController {
         return rows.stream()
                 .map(row -> new TopSellingItemResponse(
                         stringValue(row[0]),
-                        intValue(row[1])
+                        intValue(row[1]),
+                        stringValue(row[2]),
+                        bigDecimalValue(row[3])
                 ))
                 .toList();
     }
@@ -246,7 +250,9 @@ public class AdminReportController {
 
     public record TopSellingItemResponse(
             String name,
-            Integer quantity
+            Integer quantity,
+            String category,
+            BigDecimal revenue
     ) {
     }
 
